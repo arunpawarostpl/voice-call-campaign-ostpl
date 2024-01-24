@@ -53,50 +53,22 @@ async function createObdCampaigning (req, res) {
     const audio = req.files['audioFile'][0]
     const numberFile = req.files['numberFile'][0]
     const manualNumbers = req.body.number
-    
     const orignalName = audio.originalname
     const buffer = req.files['audioFile'][0].buffer
     const numberBuffer=  req.files['numberFile'][0]
     const { CampaigName, description } = req.body
-    
-    console.log("buffer@@@@@@@@@",buffer);
-    console.log("Numberbuffer@@@@@@@@@",numberBuffer);
     const csvBuffer = numberBuffer.buffer;
     const csvString = csvBuffer.toString('utf-8');
-    console.log("@@@@@@@@",csvString);
-
-const number=[]
 const phoneNumbers = csvString
   .split('\n')
   .map(row => row.trim())
   .filter(row => row !== '' && row !== 'Numbers');
-  console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@ Phone",phoneNumbers);
-
-
-
-
     if (!orignalName) {
       throw new Error('No audio file uploaded')
     }
     if (!numberFile && manualNumbers) {
       throw new Error('No Manual or number file uploaded')
     }
-
-
-
-    // if (numberFile) {
-    //   if (numberFile.mimetype === 'text/csv') {
-    //     numbers = await handleCSVUpload(csvString)
-    //   } else if (
-    //     req.file.mimetype ===
-    //     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    //   ) {
-    //     numbers = handleExcelUpload(req)
-    //   } else {
-    //     return res.status(400).json({ message: 'Unsupported file format' })
-    //   }
-    // }
-    console.log('enter in funtion')
 
     const saveObdCampaign = await obdCampaignModel.create({
         obdcampaignname:CampaigName,
@@ -109,9 +81,6 @@ const phoneNumbers = csvString
       },
       numbers:phoneNumbers
     })
-    // console.log("savedOBD",saveObdCampaign);
-
-    // const obd = await saveObdCampaign.save()
     const campaign_ID = saveObdCampaign._id
 
     if (csvString.length < 10) {
@@ -140,8 +109,8 @@ const phoneNumbers = csvString
       [OBD_DNI]: '9828011578',
       [FROM_DATE]: formatedDate,
       [TO_DATE]: formatedDate,
-      [FROM_TIME]: '12:50:00',
-      [TO_TIME]: '12:55:00',
+      [FROM_TIME]: '09:00:00',
+      [TO_TIME]: '21:00:00',
       [DIAL_TIMEOUT]: '30',
       [RETRY_INTERVAL_TYPE]: '0',
       [RETRY_INTERVAL_VALUE]: '2',
@@ -157,21 +126,22 @@ const phoneNumbers = csvString
     }
 
     const createCampaign = await createOBDCampaign(authtoken, campaignData)
-    const obd_campaignId = JSON.parse(createCampaign)
+
+    const obd_campaignId = createCampaign
+    console.log("Obd_campaign Id",obd_campaignId);
     const obdId = obd_campaignId.campaign_ID
+    console.log("obdId",obdId);
     const obdNumberData = {
-      [OBD_CAMPAIGN_ID]: obdId,
+      [OBD_CAMPAIGN_ID]: obd_campaignId,
       [OBD_DNI]: '9828011578',
       numberFile: saveObdCampaign.numbers
     }
-    console.log("obd numbers", saveObdCampaign.numbers);
-
     console.log("Obd campiagn created successfully");
 
      await uploadObdMedia(
       authtoken,
       campaign_ID,
-      obdId
+      obd_campaignId
     )
     console.log('voice file uploaded')
 
@@ -180,15 +150,8 @@ const phoneNumbers = csvString
       obdNumberData
     )
     console.log('Number file uploaded')
-
-
-
-    await startOBD(authtoken, obdId)
+    await startOBD(authtoken, obd_campaignId)
     console.log("campiagn start sucessfully");
-
-
-
-  
     return res.status(200).json({ message: 'Campaign created successfully' })
    
   } catch (error) {}

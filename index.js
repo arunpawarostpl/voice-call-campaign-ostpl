@@ -5,8 +5,6 @@ import bodyParser from 'body-parser'
 import cors from 'cors'
 import helmet from 'helmet'
 import userRoute from './src/routes/userRoute.js'
-import campaignRoute from './src/routes/campaignRoute.js'
-import nummberFileRoute from './src/routes/numberfileRoutes.js'
 import obdroute from './src/routes/obdroute.js'
 
 
@@ -22,8 +20,6 @@ app.use(express.static('public'))
 
 app.use('/', userRoute)
 app.use('/obd', obdroute)
-app.use('/campaign', campaignRoute)
-app.use('/campaign-number', nummberFileRoute)
 
 const PORT = process.env.PORT || 8000
 
