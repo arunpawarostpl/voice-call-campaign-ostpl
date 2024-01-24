@@ -1,25 +1,12 @@
-// import axios from "axios";
-import got from "got";
 import FormData from "form-data";
 import fs from "fs";
 import XLSX from "xlsx";
-import utils from "util";
-import fetch from "node-fetch";
-import { promisify } from "util";
-import wav from "node-wav";
-import Wave from "wav";
-import ffmpeg from "fluent-ffmpeg";
+
 import {
-  getAudioInfo,
-  processAudioFile,
   convertAudioToWAV,
 } from "../service/audioConverterService.js";
-
-// import {promisify } from "util"
-import { OBD_DNI, OBD_CAMPAIGN_ID } from "../utils/utils.js";
 import obdCampaignModel from "../models/obdCampaign.js";
 import axios from "axios";
-import path from "path";
 
 axios.create({
   baseURL: "https://cts.myvi.in:8443/Cpaas/api/obdcampaignapi/",
@@ -84,14 +71,7 @@ async function uploadOBDNumber(authtoken, obdNumberData) {
     } catch (error) {
       console.error("Error creating XLSX file:", error);
     }
-
-    // const dni=obdNumberData[OBD_DNI];
-    // const formData = new FormData();
     console.log("obddata=======>", obdNumberData);
-  
-    // const filedata=  formData.append('file', fs.createReadStream('obdUploads/data.xlsx'));
-    // const sendNumber = formData.append("dni", obdDniNumber);
-    // const senderId = formData.append("campaign_ID", obdSenderId);
     const obdSenderId = obdNumberData.campaign_ID;
     const obdDniNumber = obdNumberData.dni;
     console.log("data", obdSenderId, obdDniNumber);
@@ -99,7 +79,6 @@ async function uploadOBDNumber(authtoken, obdNumberData) {
 
 
     const headers = {
-      // ...formData.getHeaders(),
       Authorization: `Bearer ${authtoken}`,
       "Content-Type": "multipart/form-data",
     };
@@ -110,8 +89,8 @@ async function uploadOBDNumber(authtoken, obdNumberData) {
     const url ="https://cts.myvi.in:8443/Cpaas/api/obdcampaignapi/APICampaignBaseLoad"
     const response = axios.post(url,form,{
       headers: {
-        ...form.getHeaders(), // Set headers for FormData
-        ...headers, // Add additional headers if needed
+        ...form.getHeaders(), 
+        ...headers,d
       },
     })     .then(response => {
       console.log(response.data);
@@ -121,19 +100,6 @@ async function uploadOBDNumber(authtoken, obdNumberData) {
     });
 
   return (response)
-
-
-    // const response = await axios.post(
-    //   "https://cts.myvi.in:8443/Cpaas/api/obdcampaignapi/APICampaignBaseLoad",
-    //   {
-    //     file: "../../obdUploads/data.xlsx",
-    //     dni: obdDniNumber,
-    //     campaign_ID: obdSenderId,
-    //   },
-    //   { headers }
-    // );
-    // console.log("Number Response", response.status);
-    // return response.data;
   } catch (error) {
     console.error("Error Uploading OBD Number", error);
     throw new Error("Failed to create OBD campaign");
@@ -164,8 +130,8 @@ const headers = {
     const url = `https://cts.myvi.in:8443/Cpaas/api/obdcampaignapi/voiceUpload?campaign_ID=${obd_campaignId}&voice_File_Type=${voice_File_Type}`;
    const response=  await axios.post(url, form, {
       headers: {
-        ...form.getHeaders(), // Set headers for FormData
-        ...headers, // Add additional headers if needed
+        ...form.getHeaders(),
+        ...headers, 
       },
     })
       .then(response => {
@@ -186,7 +152,7 @@ async function startOBD(authtoken, obd_campaignId) {
   const obdStatus = "S"
     const postData = {
       campaign_ID: encodeURIComponent(obd_campaignId),
-      status: obdStatus, // Assuming you have a status value to send
+      status: obdStatus,
     } 
   try { 
     console.log("Post data====>", postData);

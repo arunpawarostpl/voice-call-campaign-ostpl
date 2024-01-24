@@ -1,15 +1,6 @@
-import {
-  handleCSVUpload,
-  handleExcelUpload,
-  parseCSVBuffer
-} from '../service/fileUploadService.js'
 import { verifyToken } from '../validator/authService.js'
 import obdCampaignModel from '../models/obdCampaign.js'
 import whiteList from '../models/whiteListModel.js'
-import fs from 'fs'
-import { extname, parse } from 'path'
-import { promisify } from 'util'
-import csvParser from 'csv-parser'
 import { createOBDCampaign, obdLogin, startOBD, uploadOBDNumber, uploadObdMedia } from '../service/obdService.js'
 import {
   OBD_CAMPAIGN_NAME,
@@ -38,8 +29,7 @@ import {
   ADMIN_USERNAME,
   ADMIN_PASSWORD
 } from '../utils/utils.js'
-import { Stream } from 'stream'
-// import csvParser from 'csv-parser'
+
 
 
 
@@ -59,7 +49,7 @@ async function createObdCampaigning (req, res) {
     const { CampaigName, description } = req.body
     const csvBuffer = numberBuffer.buffer;
     const csvString = csvBuffer.toString('utf-8');
-const phoneNumbers = csvString
+    const phoneNumbers = csvString
   .split('\n')
   .map(row => row.trim())
   .filter(row => row !== '' && row !== 'Numbers');
@@ -156,7 +146,4 @@ const phoneNumbers = csvString
    
   } catch (error) {}
 }
-
-
-
 export { createObdCampaigning}
