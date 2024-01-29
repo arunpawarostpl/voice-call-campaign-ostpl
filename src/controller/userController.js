@@ -38,7 +38,6 @@ async function createUser (req, res) {
       role,
       cutting_percentage
     })
-    console.log('usercreated@@@@@')
     const newUser = await savedUser.save()
     res.status(201).json(newUser)
   } catch (error) {
@@ -49,7 +48,6 @@ async function createUser (req, res) {
 }
 
 async function loginUser (req, res) {
-  console.log('@@@@@@@@@@@@@')
   const { username, password } = req.body
   try {
     const User = await user.findOne({
@@ -60,10 +58,6 @@ async function loginUser (req, res) {
     if (!User) {
       throw new Error('User not found')
     }
-    // const passwordMatch = await bcrypt.compare(password, User.password)
-    // if (!passwordMatch) {
-    //   throw new Error('Invalid password')
-    // }
     return res.send({ token: generateToken(User) })
   } catch (error) {
     res.status(500).json({ message: 'Login failed', error: error.message })
