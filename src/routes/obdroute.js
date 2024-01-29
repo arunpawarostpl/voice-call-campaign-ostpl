@@ -1,123 +1,77 @@
-import express from 'express'
-import multer from 'multer'
-const router = express.Router()
-import { createObdCampaigning } from '../controller/createCampaign.js'
-import obdCampaignModel from '../models/obdCampaign.js'
-import path from "path"
+import express from "express";
+import multer from "multer";
+const router = express.Router();
+import { createObdCampaigning } from "../controller/createCampaign.js";
+import obdCampaignModel from "../models/obdCampaign.js";
+import path from "path";
 
-const upload = multer({ storage: multer.memoryStorage() })
-// const numberUpload = multer({ dest: 'Number_uploads/' })
+const upload = multer({ storage: multer.memoryStorage() });
 const cpUpload = upload.fields([
-  { name: 'audioFile', maxCount: 1 },
-  { name: 'numberFile', maxCount: 1 }
-])
+  { name: "audioFile", maxCount: 1 },
+  { name: "numberFile", maxCount: 1 },
+]);
 
-// const customUpload = (req, res, next) => {
-//   const audioFile = req.files && req.files['audioFile'][0];
-//   const numberFile = req.files && req.files['numberFile'][0];
-
-//   if (audioFile) {
-//     console.log("audiofile",audioFile);
-//     // If 'audioFile' exists, use the 'upload' multer instance
-//     upload.any()(req, res, next);
-//   } else if (numberFile) {
-//     // If 'numberFile' exists, use the 'numberUpload' multer instance
-//     numberUpload.any()(req, res, next);
-//   } else {
-//     // If neither 'audioFile' nor 'numberFile' exists, proceed to the next middleware
-//     next();
-//   }
-// };
-
-
-// const storage = multer.memoryStorage();
-
-// const upload = multer({
-//   storage: storage,
-//   fileFilter: function (req, file, cb) {
-//     const isAudioFile = file.fieldname === 'audioFile';
-//     const isNumberFile = file.fieldname === 'numberFile';
-
-//     if (isAudioFile) {
-//       // Set the destination for audioFile
-//       file.destination = 'audio_uploads/';
-//     } else if (isNumberFile) {
-//       // Set the destination for numberFile
-//       file.destination = 'number_uploads/';
-//     }
-
-//     cb(null, true);
-//   }
-// });
-
-
-
-
-// const audioStorage = multer.memoryStorage();
-// const audioUpload = multer({ storage: audioStorage });
-
-
-// const numberStorage = multer.diskStorage({
-//   destination: function (req, file, cb) {
-//     cb(null, 'number_uploads/');
-//   }
-// });
-
-
-// const numberUpload = multer({ storage: numberStorage });
-
-
-// const cpUpload = (req, res, next) => {
-//   audioUpload.fields([{ name: 'audioFile', maxCount: 1 }])(req, res, (err) => {
-//     if (err instanceof multer.MulterError) {
-//       // Handle Multer errors
-//       return res.status(400).json({ error: err.message });
-//     } else if (err) {
-//       // Handle other errors
-//       return res.status(500).json({ error: err.message });
-//     }
-
-//     // If audioFile is uploaded, proceed to the next middleware
-//     if (req.files['audioFile']) {
-//       return next();
-//     }
-
-//     // If audioFile is not uploaded, handle numberFile
-//     numberUpload.fields([{ name: 'numberFile', maxCount: 1 }])(req, res, (err) => {
-//       if (err instanceof multer.MulterError) {
-//         // Handle Multer errors
-//         return res.status(400).json({ error: err.message });
-//       } else if (err) {
-//         // Handle other errors
-//         return res.status(500).json({ error: err.message });
-//       }
-
-//       next(); // Proceed to the next middleware after handling numberFile
-//     });
-//   });
-// };
-
-
-router.post('/create-obd',  cpUpload, async (req, res) => {
+router.post("/create-obd", cpUpload, async (req, res) => {
   try {
-      console.log('enter in api')
-    await createObdCampaigning(req, res)
+    console.log("enter in api");
+    await createObdCampaigning(req, res);
   } catch (error) {
-    console.error('Route error:', error)
-    res.status(500).json({ message: 'Route error', error: error.message })
+    console.error("Route error:", error);
+    res.status(500).json({ message: "Route error", error: error.message });
   }
-})
+});
 
-router.get('/getlist',async(req,res)=>{
+router.get("/getlist", async (req, res) => {
   try {
-    const list = await obdCampaignModel.find({}).select('-audio.data')
-    // console.log('Camaign List', getCamapaignList)
-    // console.log("Campaign data ====>",list);
-    res.json(list)
+    const list = await obdCampaignModel.find({}).select("-audio.data");
+    res.json(list);
   } catch (error) {
-    console.error('Error fetching data:', error)
-    res.status(500).json({ error: 'Internal Server Error' })
+    console.error("Error fetching data:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
-})
+});
 
-export default router
+router.post('/pingback', (req, res) => {
+  try {
+    console.log('Request body:', req.body);
+    const {
+      CAMPAIGN_ID,
+      SERVICE_TYPE,
+      CALL_ID,
+      DNI,
+      A_PARTY_NO,
+      CALL_START_TIME,
+      A_PARTY_DIAL_START_TIME,
+      A_PARTY_DIAL_END_TIME,
+      A_PARTY_CONNECTED_TIME,
+      A_DIAL_STATUS,
+      A_PARTY_END_TIME,
+      OG_DURATION
+    } = req.body;
+
+    // Your processing logic here
+    console.log('Received Pingback Data:');
+    console.log('CAMPAIGN_ID:', CAMPAIGN_ID);
+    console.log('SERVICE_TYPE:', SERVICE_TYPE);
+    console.log('CALL_ID:', CALL_ID);
+    console.log('DNI:', DNI);
+    console.log('A_PARTY_NO:', A_PARTY_NO);
+    console.log('CALL_START_TIME:', CALL_START_TIME);
+    console.log('A_PARTY_DIAL_START_TIME:', A_PARTY_DIAL_START_TIME);
+    console.log('A_PARTY_DIAL_END_TIME:', A_PARTY_DIAL_END_TIME);
+    console.log('A_PARTY_CONNECTED_TIME:', A_PARTY_CONNECTED_TIME);
+    console.log('A_DIAL_STATUS:', A_DIAL_STATUS);
+    console.log('A_PARTY_END_TIME:', A_PARTY_END_TIME);
+    console.log('OG_DURATION:', OG_DURATION);
+
+
+    // Send a response (optional)
+    res.json({ status: 'success', message: 'Pingback received successfully' });
+  } catch (error) {
+    console.error('Error processing pingback:', error);
+    res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+  }
+});
+
+
+export default router;

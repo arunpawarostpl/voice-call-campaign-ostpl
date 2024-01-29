@@ -82,8 +82,8 @@ async function createObdCampaigning (req, res) {
       await savedWhitelisitng.save()
     }
 
-    const username = ADMIN_USERNAME
-    const password = ADMIN_PASSWORD
+    const username =process.env.OBD_USERNAME
+    const password =process.env.OBD_PASSWORD 
     const authtoken = await obdLogin(username, password)
     const campaign_data = await obdCampaignModel.findById(campaign_ID)
     const obd_campaign_date = new Date(campaign_data.createdAt)
@@ -106,7 +106,7 @@ async function createObdCampaigning (req, res) {
       [RETRY_INTERVAL_VALUE]: '2',
       [RETRY_COUNT]: '4',
       [API_REQUEST]: 'N',
-      [PING_BACK_URL]: 'N/a',
+      [PING_BACK_URL]: 'N/A',
       [WELCOME_PROMPT]: 'N',
       [DTMF_REQUEST]: 'N',
       [DTMF_LENGTH]: 'N',
