@@ -8,18 +8,19 @@ import {
 import obdCampaignModel from "../models/obdCampaign.js";
 import axios from "axios";
 
-axios.create({
-  baseURL: "https://cts.myvi.in:8443/Cpaas/api/obdcampaignapi/",
-});
+// axios.create({
+//   baseURL: "https://cts.myvi.in:8443/Cpaas/api/obdcampaignapi/",
+// });
 
 async function obdLogin(username, password) {
   const loginPayload = {
     username: username,
     password: password,
   };
+
   try {
     const response = await axios.post(
-      "https://cts.myvi.in:8443/Cpaas/api/obdcampaignapi/AuthToken",
+      process.env.OBD_LOGIN_URL,
       loginPayload
     );
     console.log("token", response.data.idToken);
@@ -35,8 +36,12 @@ async function createOBDCampaign(authToken, campaignData) {
       Authorization: `Bearer ${authToken}`, // Added space after 'Bearer'
       "Content-Type": "application/json",
     };
+ 
+    const url=process.env.OBD_CREATE_CAMPAIGN
+
+console.log("Uplaoded Campaign data",campaignData);
     const response = await axios.post(
-      "https://cts.myvi.in:8443/Cpaas/api/obdcampaignapi/createOBDCampaign",
+     url,
       campaignData,
       { headers }
     );
@@ -86,11 +91,12 @@ async function uploadOBDNumber(authtoken, obdNumberData) {
     form.append('file', fs.createReadStream('obdUploads/data.xlsx'));
     form.append('dni',obdDniNumber)
     form.append('campaign_ID',obdSenderId)
-    const url ="https://cts.myvi.in:8443/Cpaas/api/obdcampaignapi/APICampaignBaseLoad"
+
+    const url=process.env.OBD_UPLOAD_NUMBER 
     const response = axios.post(url,form,{
       headers: {
         ...form.getHeaders(), 
-        ...headers,d
+        ...headers,
       },
     })     .then(response => {
       console.log(response.data);
@@ -127,12 +133,12 @@ const headers = {
     const form = new FormData();
     form.append('file', fs.createReadStream('obdUploads/audio.wav'));
 
-    const url = `https://cts.myvi.in:8443/Cpaas/api/obdcampaignapi/voiceUpload?campaign_ID=${obd_campaignId}&voice_File_Type=${voice_File_Type}`;
+    const url = `https://cts.myvi.in:8443/Cpaas/api/obdcampaignapi/voiceUpload?campaign_ID=${obd_campaignId}&voice_File_Type=${voice_File_Type}`
    const response=  await axios.post(url, form, {
       headers: {
         ...form.getHeaders(),
         ...headers, 
-      },
+      }
     })
       .then(response => {
         console.log(response.data);
@@ -150,12 +156,7 @@ const headers = {
 
 async function startOBD(authtoken, obd_campaignId) {
   const obdStatus = "S"
-    const postData = {
-      campaign_ID: encodeURIComponent(obd_campaignId),
-      status: obdStatus,
-    } 
   try { 
-    console.log("Post data====>", postData);
     const headers = {
       "Content-Type": "application/json",
 
@@ -163,7 +164,7 @@ async function startOBD(authtoken, obd_campaignId) {
     };
     const response = await axios({
       method:'post',
-      url:"https://cts.myvi.in:8443/Cpaas/api/obdcampaignapi/StartorStop",
+      url:process.env.OBD_ACTION_URL,
       data:{
         campaign_ID: obd_campaignId,
         status: obdStatus,
