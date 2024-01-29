@@ -23,6 +23,4 @@ export const THANKS_PROMPT  ='thanks_Prompt'
 export const OBD_FILE='file'
 export const OBD_CAMPAIGN_ID= 'campaign_ID'
 export const STATUS='status'
-export const ADMIN_USERNAME = 'ONWEB'
-export const ADMIN_PASSWORD='Admin@123'
 
