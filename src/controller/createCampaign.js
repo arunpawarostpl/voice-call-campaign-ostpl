@@ -26,8 +26,6 @@ import {
   OBD_FILE,
   OBD_CAMPAIGN_ID,
   STATUS,
-  ADMIN_USERNAME,
-  ADMIN_PASSWORD
 } from '../utils/utils.js'
 
 
