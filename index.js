@@ -12,11 +12,8 @@ import path from "path"
 // import dotenv from 'dotenv';
 dotenv.config();
 
-if (process.env.NODE_ENV === 'development') {
-  dotenv.config({ path: '.env.development' });
-} else if (process.env.NODE_ENV === 'production') {
-  dotenv.config({ path: '.env.production' });
-}
+
+
 const app = express()
 app.use(express.json())
 app.use(bodyParser.json());

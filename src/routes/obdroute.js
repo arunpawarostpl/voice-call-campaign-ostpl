@@ -31,7 +31,7 @@ router.get("/getlist", async (req, res) => {
   }
 });
 
-router.post('/pingback', (req, res) => {
+router.post("/pingback", (req, res) => {
   try {
     console.log('Request body:', req.body);
     const {

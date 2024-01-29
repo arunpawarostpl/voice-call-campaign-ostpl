@@ -19,13 +19,14 @@ router.post('/user-register', async (req, res) => {
   }
 })
 // Route for user login-user
-router.post('/user-login', async (req, res) => {
-  try {
-    await loginUser(req, res)
-  } catch (error) {
-    console.error('Route error:', error)
-    res.status(500).json({ message: 'Route error', error: error.message })
-  }
+router.get('/user-login',(req, res) => {
+  res.send("Hello world")
+  // try {
+  //   // await loginUser(req, res)  
+  // } catch (error) {
+  //   console.error('Route error:', error)
+  //   res.status(500).json({ message: 'Route error', error: error.message })
+  // }
 })
 
 router.get('/userlength', async (req, res) => {
