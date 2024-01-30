@@ -104,7 +104,7 @@ async function createObdCampaigning (req, res) {
       [RETRY_INTERVAL_VALUE]: '2',
       [RETRY_COUNT]: '4',
       [API_REQUEST]: 'Y',
-      [PING_BACK_URL]: 'https://voice.ostpl.com/#/obd/pingback',
+      [PING_BACK_URL]: 'https://seashell-app-z3etn.ondigitalocean.app/obd/pingback',
       [WELCOME_PROMPT]: 'N',
       [DTMF_REQUEST]: 'N',
       [DTMF_LENGTH]: 'N',
