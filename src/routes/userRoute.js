@@ -19,7 +19,7 @@ router.post('/user-register', async (req, res) => {
   }
 })
 // Route for user login-user
-router.get('/user-login',async(req, res) => {
+router.post('/user-login',async(req, res) => {
   try {
     await loginUser(req, res)  
   } catch (error) {
