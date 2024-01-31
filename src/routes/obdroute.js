@@ -31,9 +31,8 @@ router.get("/getlist", async (req, res) => {
   }
 });
 
-router.post("/pingback", (req, res) => {
+router.post('/obd/pingback', (req, res) => {
   try {
-    console.log('Request body:', req.body);
     const {
       CAMPAIGN_ID,
       SERVICE_TYPE,
@@ -49,7 +48,7 @@ router.post("/pingback", (req, res) => {
       OG_DURATION
     } = req.body;
 
-    // Your processing logic here
+    // Log the received pingback data
     console.log('Received Pingback Data:');
     console.log('CAMPAIGN_ID:', CAMPAIGN_ID);
     console.log('SERVICE_TYPE:', SERVICE_TYPE);
@@ -64,14 +63,16 @@ router.post("/pingback", (req, res) => {
     console.log('A_PARTY_END_TIME:', A_PARTY_END_TIME);
     console.log('OG_DURATION:', OG_DURATION);
 
+    // Process the pingback data (add your processing logic here)
 
-    // Send a response (optional)
-    res.json({ status: 'success', message: 'Pingback received successfully' });
+    // Send a success response
+    res.json({ status: 'Success', message: 'Pingback received successfully' });
   } catch (error) {
     console.error('Error processing pingback:', error);
-    res.status(500).json({ status: 'error', message: 'Internal Server Error' });
+    // Send a failed response
+    res.status(500).json({ status: 'Failed', message: 'Internal Server Error' });
   }
-});
+});;
 
 
 export default router;
