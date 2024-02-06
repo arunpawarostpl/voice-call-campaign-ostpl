@@ -1,11 +1,11 @@
 import ffmpeg from 'fluent-ffmpeg';
+import  setFfmpegPath  from 'fluent-ffmpeg';
 import ffmpegPath from 'ffmpeg-static';
 import wav  from 'node-wav';
 import fs from "fs"
 import pcmUtil  from "pcm-util"
 import { Binary } from 'mongodb';
 import { promisify } from "util";
-
 
 ffmpeg.setFfmpegPath(ffmpegPath);
 
@@ -35,37 +35,37 @@ async function getAudioInfo(filePath) {
 
 
 async function convertAudioToWAV(audioBuffer, outputFilePath) {
-    return new Promise((resolve, reject) => {
-      const tempMP3File = 'temp.mp3';
-      fs.writeFileSync(tempMP3File, audioBuffer);
-  
-      const command = ffmpeg(tempMP3File)
-        .toFormat('wav')
-        .audioCodec('pcm_u8') // 8-bit audio codec
-        .audioChannels(1) // Mono channel
-        .audioFrequency(8000) // Sample rate
-        .audioBitrate('64k') // Target bitrate
-        .output(outputFilePath);
-  
-  console.log("@@@@@@@@@@@@run the");
-  command.on('end', () => {
-    console.log('Conversion successful! WAV file generated:', outputFilePath);
-    fs.unlinkSync(tempMP3File); // Remove the temporary MP3 file
-    resolve();
+  return new Promise((resolve, reject) => {
+    const tempMP3File = 'temp.mp3';
+    fs.writeFileSync(tempMP3File, audioBuffer);
+
+    const command = ffmpeg(tempMP3File)
+      .toFormat('wav')
+      .audioCodec('pcm_u8') // 8-bit audio codec
+      .audioChannels(1) // Mono channel
+      .audioFrequency(8000) // Sample rate
+      .audioBitrate('64k') // Target bitrate
+      .output(outputFilePath);
+
+console.log("@@@@@@@@@@@@run the");
+command.on('end', () => {
+  console.log('Conversion successful! WAV file generated:', outputFilePath);
+  fs.unlinkSync(tempMP3File); // Remove the temporary MP3 file
+  resolve();
+});
+
+command.on('error', (err) => {
+  console.error('Error during conversion:', err);
+  fs.unlinkSync(tempMP3File); // Remove the temporary MP3 file in case of an error
+  reject(err);
+});
+
+command.run();
+     
   });
+}
 
-  command.on('error', (err) => {
-    console.error('Error during conversion:', err);
-    fs.unlinkSync(tempMP3File); // Remove the temporary MP3 file in case of an error
-    reject(err);
-  });
-
-  command.run();
-       
-    });
-  }
   
-
 
 
   async function processAudioFile(inputFilePath) {
@@ -88,7 +88,7 @@ async function convertAudioToWAV(audioBuffer, outputFilePath) {
       throw new Error('Failed to process audio');
     }
   }
-  
+
   
 
 export { getAudioInfo ,processAudioFile,convertAudioToWAV};

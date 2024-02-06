@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken'
 
-const secretKey = 'your_secret_key' // Replace with your actual secret key
+const secretKey = "sdsaaas" // Replace with your actual secret key
 const tokenExpiration = '10h' // Token expiration time
 
 // Function to generate JWT token

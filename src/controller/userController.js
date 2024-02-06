@@ -12,34 +12,53 @@ async function createUser (req, res) {
     state,
     city,
     role,
-    cutting_percentage
+    cutting_percentage,
+    credits,
   } = req.body
   try {
-    if (token) {
-      const { UserRole } = await verifyToken(token)
-      console.log('Role', UserRole)
-
+    const { UserRole,UserId } = await verifyToken(token)
       if (UserRole === 'user') {
         return console.error(
           'You Dont have permission Please contact the Reseller'
         )
       }
-    }
+    
+if(!cutting_percentage){
+const findCutting= await user.find({_id:UserId})
+const cutting=findCutting[0].cutting_percentage
 
-    // const hashedPassword = await bcrypt.hash(password, 10)
-
-    const savedUser = new user({
-      username,
-      mobileNumber,
-      email,
-      password,
-      state,
-      city,
-      role,
-      cutting_percentage
-    })
-    const newUser = await savedUser.save()
-    res.status(201).json(newUser)
+const savedUser = new user({
+  username,
+  mobileNumber,
+  email,
+  password,
+  state,
+  city,
+  role,
+  cutting_percentage:cutting,
+  credits,
+  createdBy:UserId
+})
+const newUser = await savedUser.save()
+console.log(newUser);
+res.status(201).json(newUser)
+}else{
+  const savedUser = new user({
+    username,
+    mobileNumber,
+    email,
+    password,
+    state,
+    city,
+    role,
+    cutting_percentage,
+    credits,
+    createdBy:UserId,
+  })
+  const newUser = await savedUser.save()
+  console.log(newUser);
+  res.status(201).json(newUser)
+}
   } catch (error) {
     res
       .status(500)
@@ -54,11 +73,12 @@ async function loginUser (req, res) {
       username: username,
       password: password
     })
-    console.log(User)
+    const userDetails= User
     if (!User) {
+
       throw new Error('User not found')
     }
-    return res.send({ token: generateToken(User) })
+    return res.send({ token: generateToken(User), role:userDetails.role })
   } catch (error) {
     res.status(500).json({ message: 'Login failed', error: error.message })
   }

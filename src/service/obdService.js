@@ -39,7 +39,6 @@ async function createOBDCampaign(authToken, campaignData) {
  
     const url=process.env.OBD_CREATE_CAMPAIGN
 
-console.log("Uplaoded Campaign data",campaignData);
     const response = await axios.post(
      url,
       campaignData,
