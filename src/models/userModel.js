@@ -9,10 +9,12 @@ const userSchema = new mongoose.Schema({
     password: { type: String, required: true },
     state: { type: String, required: true },
     city: { type: String, required: true },
-    role: { type: String, enum: ['user', 'admin', 'reseller','super-admin'], required: true },
-    cutting_percentage:{type:Number,default:0}
-    // other fields as needed
+    role: { type: String, enum: ['user', 'admin', 'reseller'], required: true },
+    cutting_percentage:{type:Number,default:0},
+    credits: { type: Number, default: 0 },
+    createdBy:{type:String,required:true}
 }, { timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' } });
+
 
 const user=mongoose.model("user",userSchema )
 // Create User model

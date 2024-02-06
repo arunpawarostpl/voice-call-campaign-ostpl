@@ -14,7 +14,7 @@ const obdcampaignchema = new mongoose.Schema(
       data: Buffer
     },
     createdBy: {
-      type: mongoose.Schema.Types.ObjectId,
+      type:String,
       ref: 'User',
       required: true
     },
