@@ -55,7 +55,7 @@ router.get('/userList', async (req, res) => {
   }
 })
 
-router.get('/user-campaigns', async (req, res) => {
+router.get('/campaign-list', async (req, res) => {
   try {
     const token = req.headers.authorization
     const { UserRole, UserId } = verifyToken(token)
@@ -147,7 +147,53 @@ router.put("/reverse_credit_transfer", async (req, res) => {
 });
 
 
+router.get("/get_users",async(req,res)=>{
+  try {
+    const token = req.headers.authorization
+    const { UserRole, UserId } = verifyToken(token)
+    // const userId = req.query.userId;  
+    const userCampaigns = await user.find( {createdBy:UserId}).select("-audio.data");
+    console.log("userDta",userCampaigns);
+    if (!userCampaigns) {
+      return res.status(404).json({ message: 'User Campaign not found' });
+    }
+    res.json(userCampaigns);
+  } catch (error) {
+    console.error('Error fetching campaigns:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+})
 
+
+router.put("/update_cutting", async (req, res) => {
+  try {
+    const token = req.headers.authorization;
+    const { UserId, UserRole } = verifyToken(token); // Assuming verifyToken returns the user ID and role
+    const { userId, cutting } = req.body;
+
+    if (!userId || !cutting) {
+      return res.status(400).json({ error: 'userId and cutting_percentage are required in the request body' });
+    }
+
+    const userToUpdate = await user.findById(userId);
+
+    if (!userToUpdate) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    if (UserRole === 'admin') {
+      // Admin can update cutting_percentage
+      userToUpdate.cutting_percentage = cutting;
+      await userToUpdate.save();
+      res.json({ message: 'Cutting percentage updated successfully' });
+    } else {
+      return res.status(403).json({ error: 'Unauthorized. Only admins can update cutting percentage' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
 
 

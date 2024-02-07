@@ -1,8 +1,8 @@
 import { verifyToken } from "../validator/authService.js";
 import obdCampaignModel from "../models/obdCampaign.js";
 import whiteList from "../models/whiteListModel.js";
-import { PassThrough } from 'stream';
-import { convertAudioToWAV } from "../service/audioConverterService.js";
+import ffmpeg from 'fluent-ffmpeg';
+import ffprobeStatic from 'ffprobe-static';
 import {
   createOBDCampaign,
   obdLogin,
@@ -36,6 +36,11 @@ import {
   STATUS,
 } from "../utils/utils.js";
 import user from "../models/userModel.js";
+import {   convertAudioToWAV,getAudioDuration } from "../service/audioConverterService.js";
+import { PassThrough } from 'stream';
+
+ffmpeg.setFfprobePath(ffprobeStatic.path);
+
 
 async function createObdCampaigning(req, res) {
   try {
@@ -51,7 +56,20 @@ async function createObdCampaigning(req, res) {
     const csvBuffer = numberBuffer.buffer;
     const csvString = csvBuffer.toString("utf-8");
     const audioBuffer = audio.buffer;
-    console.log("Aduio buffer",audioBuffer);
+    console.log("Audio details",audio);
+
+    const data = audioBuffer.length; // Replace with your actual buffer
+    const sampleRate = 6000;   // Replace with the actual sample rate of your audio file
+    console.log("lenfth",data);
+    // Calculate the duration in seconds
+    const duration = data / (2 * sampleRate); // Assuming 16-bit PCM audio, hence 2 bytes per sample
+    
+    console.log(`Estimated duration of the audio file is approximately ${duration} seconds.`);
+    
+    // const outputFilePath = "obdUploads/audio.wav";  
+
+    // console.log("audiodata",audiodata);
+
     const phoneNumbers = csvString
       .split("\n")
       .map((row) => row.trim())
@@ -104,42 +122,25 @@ async function createObdCampaigning(req, res) {
     const userCuttingPercentage = getCutting.cutting_percentage;
     const whitelistCompare = await whiteList.findOne({ createdBy: UserId });
     const whitelistCompareNumbers = whitelistCompare.numbers || 0;
-    console.log("number whitelist for cutting", whitelistCompareNumbers);
-    console.log("number cleaned Number for cutting", cleanedPhoneNumber);
 
     const matchingNumbers = cleanedPhoneNumber.filter((number) =>
       whitelistCompareNumbers.includes(number)
     );
 
-    const matching = cleanedPhoneNumber.filter(number => matchingNumbers.includes(number));
-    console.log("matching",matching);
-
-    console.log("cleamPhoneNumberlength",cleanedPhoneNumber.length, "matchingNumbers number length",matchingNumbers.length);
-    const remainingNumbers = cleanedPhoneNumber.filter(number => !matchingNumbers.includes(number));
-    console.log("remainingNumbers", remainingNumbers);
-
+    const matching = cleanedPhoneNumber.filter((number) =>
+      matchingNumbers.includes(number)
+    );
+    const remainingNumbers = cleanedPhoneNumber.filter(
+      (number) => !matchingNumbers.includes(number)
+    );
 
     const cuttingCount = Math.ceil(
       (userCuttingPercentage / 100) * remainingNumbers.length
     );
 
-    console.log("cutting count", cuttingCount);
-
-
-    
     const filteredNumber = remainingNumbers.slice(cuttingCount);
-  console.log("filteredNumber Numbers:", filteredNumber)
-  console.log("filteredNumber Numbers length:", filteredNumber.length)
 
-  const finalSubmissionNumber= matching.concat(filteredNumber)
-  console.log("finalSubmissionNumber",finalSubmissionNumber);
-
-
-  // const filteredNumber = remainingNumbers.slice(cuttingCount);
-  // console.log("Remaining Numbers:", filteredNumber)
-
-
-      
+    const finalSubmissionNumber = matching.concat(filteredNumber);
 
     const username = process.env.OBD_USERNAME;
     const password = process.env.OBD_PASSWORD;
