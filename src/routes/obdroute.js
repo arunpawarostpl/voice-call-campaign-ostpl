@@ -4,7 +4,7 @@ const router = express.Router();
 import { createObdCampaigning } from "../controller/createCampaign.js";
 import obdCampaignModel from "../models/obdCampaign.js";
 import path from "path";
-
+import axios from "axios";
 const upload = multer({ storage: multer.memoryStorage() });
 const cpUpload = upload.fields([
   { name: "audioFile", maxCount: 1 },
@@ -31,9 +31,10 @@ router.get("/getlist", async (req, res) => {
   }
 });
 
-router.post('/obd/pingback', (req, res) => {
+router.post('/getdata',async (req, res) => {
+
   try {
-    const {
+    const request={
       CAMPAIGN_ID,
       SERVICE_TYPE,
       CALL_ID,
@@ -46,23 +47,19 @@ router.post('/obd/pingback', (req, res) => {
       A_DIAL_STATUS,
       A_PARTY_END_TIME,
       OG_DURATION
-    } = req.body;
+    }
+    const response=await axios.post("https://calls.ostpl.com/obd/getdata",request,{
+      heaedrs:{
+        "Content-Type": "application/json",
+      }
+    })
+  
+console.log("getdata",response);
+
+
 
     // Log the received pingback data
-    console.log('Received Pingback Data:');
-    console.log('CAMPAIGN_ID:', CAMPAIGN_ID);
-    console.log('SERVICE_TYPE:', SERVICE_TYPE);
-    console.log('CALL_ID:', CALL_ID);
-    console.log('DNI:', DNI);
-    console.log('A_PARTY_NO:', A_PARTY_NO);
-    console.log('CALL_START_TIME:', CALL_START_TIME);
-    console.log('A_PARTY_DIAL_START_TIME:', A_PARTY_DIAL_START_TIME);
-    console.log('A_PARTY_DIAL_END_TIME:', A_PARTY_DIAL_END_TIME);
-    console.log('A_PARTY_CONNECTED_TIME:', A_PARTY_CONNECTED_TIME);
-    console.log('A_DIAL_STATUS:', A_DIAL_STATUS);
-    console.log('A_PARTY_END_TIME:', A_PARTY_END_TIME);
-    console.log('OG_DURATION:', OG_DURATION);
-
+ 
     // Process the pingback data (add your processing logic here)
 
     // Send a success response
@@ -74,5 +71,19 @@ router.post('/obd/pingback', (req, res) => {
   }
 });;
 
+const fetchData = async () => {
+  const url = 'https://calls.ostpl.com/obd/getdata';
+
+  try {
+    const response = await axios.post(url);
+    const data = response.data;
+    console.log(data);
+    // Process your data here
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  }
+};
+
+fetchData();
 
 export default router;

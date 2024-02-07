@@ -1,27 +1,18 @@
 import ffmpeg from 'fluent-ffmpeg';
-import  setFfmpegPath  from 'fluent-ffmpeg';
 import ffmpegPath from 'ffmpeg-static';
 import wav  from 'node-wav';
-import fs from "fs"
-import pcmUtil  from "pcm-util"
-import { Binary } from 'mongodb';
-import { promisify } from "util";
+import fs from 'fs';
+import { PassThrough } from 'stream';
+import ffprobeStatic from 'ffprobe-static';
+import wavFileInfo from 'wav-file-info';
+
 
 ffmpeg.setFfmpegPath(ffmpegPath);
 
-// async function convertToWav(inputPath, outputPath) {
-//     return new Promise((resolve, reject) => {
-//         ffmpeg(inputPath)
-//             .toFormat('wav')
-//             .on('end', () => {
-//                 resolve(outputPath);
-//             })
-//             .on('error', (err) => {
-//                 reject(err);
-//             })
-//             .save(outputPath);
-//     });
-// }
+
+
+
+
 
 async function getAudioInfo(filePath) {
     const audioBuffer = fs.readFileSync(filePath);
@@ -54,6 +45,7 @@ command.on('end', () => {
   resolve();
 });
 
+
 command.on('error', (err) => {
   console.error('Error during conversion:', err);
   fs.unlinkSync(tempMP3File); // Remove the temporary MP3 file in case of an error
@@ -64,6 +56,29 @@ command.run();
      
   });
 }
+
+
+
+
+
+// Function to get audio duration
+async function getAudioDuration(filePath) {
+  return new Promise((resolve, reject) => {
+    wavFileInfo.infoByFilename(filePath, (err, info) => {
+      if (err) {
+        reject(err);
+      } else {
+        const durationInSeconds = info.duration;
+        resolve(durationInSeconds);
+      }
+    });
+  });
+}
+
+
+
+
+
 
   
 
@@ -91,4 +106,4 @@ command.run();
 
   
 
-export { getAudioInfo ,processAudioFile,convertAudioToWAV};
+export { getAudioInfo ,processAudioFile,convertAudioToWAV,getAudioDuration};
