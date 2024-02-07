@@ -34,7 +34,7 @@ router.get("/getlist", async (req, res) => {
 router.post('/getdata',async (req, res) => {
 
   try {
-    const request={
+    const {
       CAMPAIGN_ID,
       SERVICE_TYPE,
       CALL_ID,
@@ -47,22 +47,8 @@ router.post('/getdata',async (req, res) => {
       A_DIAL_STATUS,
       A_PARTY_END_TIME,
       OG_DURATION
-    }
-    const response=await axios.post("https://calls.ostpl.com/obd/getdata",request,{
-      heaedrs:{
-        "Content-Type": "application/json",
-      }
-    })
+    } = req.body;
   
-console.log("getdata",response);
-
-
-
-    // Log the received pingback data
- 
-    // Process the pingback data (add your processing logic here)
-
-    // Send a success response
     res.json({ status: 'Success', message: 'Pingback received successfully' });
   } catch (error) {
     console.error('Error processing pingback:', error);
@@ -71,19 +57,5 @@ console.log("getdata",response);
   }
 });;
 
-const fetchData = async () => {
-  const url = 'https://calls.ostpl.com/obd/getdata';
-
-  try {
-    const response = await axios.post(url);
-    const data = response.data;
-    console.log(data);
-    // Process your data here
-  } catch (error) {
-    console.error('Error fetching data:', error);
-  }
-};
-
-fetchData();
 
 export default router;
