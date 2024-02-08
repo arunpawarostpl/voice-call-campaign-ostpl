@@ -4,7 +4,9 @@ import wav  from 'node-wav';
 import fs from 'fs';
 import { PassThrough } from 'stream';
 import ffprobeStatic from 'ffprobe-static';
-import wavFileInfo from 'wav-file-info';
+
+import wavInfo from "wav-file-info"
+
 
 
 ffmpeg.setFfmpegPath(ffmpegPath);
@@ -62,20 +64,18 @@ command.run();
 
 
 // Function to get audio duration
-async function getAudioDuration(filePath) {
+async function getDuration(outputFilePath, decimalPlaces = 0) {
   return new Promise((resolve, reject) => {
-    wavFileInfo.infoByFilename(filePath, (err, info) => {
+    wavInfo.infoByFilename(outputFilePath, (err, info) => {
       if (err) {
-        reject(err);
+        reject(`Error getting duration: ${err.message}`);
       } else {
-        const durationInSeconds = info.duration;
-        resolve(durationInSeconds);
+        const roundedDuration = parseFloat(info.duration).toFixed(decimalPlaces);
+        resolve(roundedDuration);
       }
     });
   });
 }
-
-
 
 
 
@@ -104,6 +104,57 @@ async function getAudioDuration(filePath) {
     }
   }
 
+
+
+
+async function checkAudioDuration(audioBuffer, outputFilePath) {
+  return new Promise((resolve, reject) => {
+    const tempMP3File = 'temp.mp3';
+    fs.writeFileSync(tempMP3File, audioBuffer);
+
+    const command = ffmpeg(tempMP3File)
+      .toFormat('wav')
+      .audioCodec('pcm_u8') // 8-bit audio codec
+      .audioChannels(1) // Mono channel
+      .audioFrequency(8000) // Sample rate
+      .audioBitrate('64k') // Target bitrate
+      .output(outputFilePath);
+
+console.log("@@@@@@@@@@@@run the");
+command.on('end', () => {
+
+  // console.log('Conversion successful! WAV file generated:', outputFilePath);
+  fs.unlinkSync(tempMP3File); // Remove the temporary MP3 file
+  resolve();
+});
+
+
+command.on('error', (err) => {
+  console.error('Error during conversion:', err);
+  fs.unlinkSync(tempMP3File); // Remove the temporary MP3 file in case of an error
+  reject(err);
+});
+
+command.run();
+     
+  });
+
+  
+}
+
+async function getDurartion(outputFilePath){
+  return new Promise((resolve, reject) => {
+    wavInfo.infoByFilename(outputFilePath, (err, info) => {
+      if (err) {
+        reject(err);
+      } else {
+        console.log('Metadata:', info);
+        resolve(info);
+      }
+    });
+  });
+
+}
   
 
-export { getAudioInfo ,processAudioFile,convertAudioToWAV,getAudioDuration};
+export { getAudioInfo ,processAudioFile,convertAudioToWAV,checkAudioDuration,getDuration};

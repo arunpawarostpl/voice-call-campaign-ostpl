@@ -71,6 +71,27 @@ router.get('/campaign-list', async (req, res) => {
   }
 });
 
+router.get('/reseller-list', async (req, res) => {
+
+  try {
+    const token = req.headers.authorization
+    const { UserRole, UserId } = verifyToken(token)
+    const userCampaignsPromise = await obdCampaignModel.find({ createdBy: UserId }).select("-audio.data")
+    const userData = await user.find({ createdBy: UserId }).select("-audio.data")
+    const userArray = Array.isArray(userData) ? userData : [userData];
+    const userIDs = userArray.map(user => user._id);
+    const userCampaigns = await obdCampaignModel.find({ createdBy: { $in: userIDs } }).exec();
+    const combinedResult = [...userCampaignsPromise, ...userCampaigns];
+    if (!combinedResult) {
+      return res.status(404).json({ message: 'User Campaign not found' });
+    }
+    res.json(combinedResult);
+  } catch (error) {
+    console.error('Error fetching campaigns:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
 
 router.put("/update_credits", async (req, res) => {
   try {
@@ -153,7 +174,6 @@ router.get("/get_users",async(req,res)=>{
     const { UserRole, UserId } = verifyToken(token)
     // const userId = req.query.userId;  
     const userCampaigns = await user.find( {createdBy:UserId}).select("-audio.data");
-    console.log("userDta",userCampaigns);
     if (!userCampaigns) {
       return res.status(404).json({ message: 'User Campaign not found' });
     }

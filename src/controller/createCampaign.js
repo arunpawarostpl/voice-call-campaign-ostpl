@@ -1,8 +1,8 @@
 import { verifyToken } from "../validator/authService.js";
 import obdCampaignModel from "../models/obdCampaign.js";
 import whiteList from "../models/whiteListModel.js";
-import ffmpeg from 'fluent-ffmpeg';
-import ffprobeStatic from 'ffprobe-static';
+import ffmpeg from "fluent-ffmpeg";
+import ffprobeStatic from "ffprobe-static";
 import {
   createOBDCampaign,
   obdLogin,
@@ -36,11 +36,20 @@ import {
   STATUS,
 } from "../utils/utils.js";
 import user from "../models/userModel.js";
-import {   convertAudioToWAV,getAudioDuration } from "../service/audioConverterService.js";
-import { PassThrough } from 'stream';
-
+import {
+  convertAudioToWAV,
+  checkAudioDuration,
+  getDuration,
+} from "../service/audioConverterService.js";
+import { PassThrough } from "stream";
+import wavInfo from "wav-file-info";
+import fs from "fs";
+import {
+  calculateCreditsNeeded,
+  hasSufficientCredits,
+  deductCreditsAndUpdateUser,
+} from "../service/credit_calculation_service.js";
 ffmpeg.setFfprobePath(ffprobeStatic.path);
-
 
 async function createObdCampaigning(req, res) {
   try {
@@ -56,19 +65,7 @@ async function createObdCampaigning(req, res) {
     const csvBuffer = numberBuffer.buffer;
     const csvString = csvBuffer.toString("utf-8");
     const audioBuffer = audio.buffer;
-    console.log("Audio details",audio);
-
-    const data = audioBuffer.length; // Replace with your actual buffer
-    const sampleRate = 6000;   // Replace with the actual sample rate of your audio file
-    console.log("lenfth",data);
-    // Calculate the duration in seconds
-    const duration = data / (2 * sampleRate); // Assuming 16-bit PCM audio, hence 2 bytes per sample
-    
-    console.log(`Estimated duration of the audio file is approximately ${duration} seconds.`);
-    
-    // const outputFilePath = "obdUploads/audio.wav";  
-
-    // console.log("audiodata",audiodata);
+    console.log("Audio details", audio);
 
     const phoneNumbers = csvString
       .split("\n")
@@ -84,6 +81,40 @@ async function createObdCampaigning(req, res) {
     const cleanedPhoneNumber = phoneNumbers.map((number) =>
       number.replace(/ /g, "")
     );
+
+    const outputFilePath = "obdUploads/sample.wav";
+    await checkAudioDuration(audioBuffer, outputFilePath)
+      .then(() => {
+        console.log("Conversion completed.");
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+
+    const audioMetadata = await getDuration(outputFilePath)
+      .then((duration) => {
+        fs.unlinkSync(outputFilePath);
+        return duration;
+      })
+      .catch((error) => {
+        console.error(`Error: ${error}`);
+      });
+                const calculatedDuration = audioMetadata
+               const senderNumber=cleanedPhoneNumber.length
+               const creditsNeeded = calculateCreditsNeeded(calculatedDuration);
+               const totalCredit=senderNumber*creditsNeeded
+
+               const userInfo = await user.findOne({ _id:UserId });
+         if(!userInfo.role==="admin"){
+console.log("Userinfo",userInfo);
+               if(userInfo.credits >= creditsNeeded){
+                const updatedCredits = userInfo.credits - totalCredit;
+                await user.updateOne({_id: UserId }, { $set: { credits: updatedCredits } });
+               }else{
+                console.error("error")
+               }}
+
+
     const saveObdCampaign = await obdCampaignModel.create({
       obdcampaignname: CampaigName,
       description,
