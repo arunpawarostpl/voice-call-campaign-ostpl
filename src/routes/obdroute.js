@@ -34,25 +34,43 @@ router.get("/getlist", async (req, res) => {
 
 
 router.post('/getdata', async (req, res) => {
+  const campaignDataMap = new Map();
   try {
-    // Find the existing count or create a new record if not exists
-    let apiHit = await campaignReport.findOne();
+    const responseData = req.body;
+    const CAMPAIGN_REF_ID = responseData.CAMPAIGN_REF_ID;
 
-    if (!apiHit) {
-      apiHit = new campaignReport();
+    // Check if there's existing data for this CAMPAIGN_REF_ID in the map
+    if (!campaignDataMap.has(CAMPAIGN_REF_ID)) {
+      // If not, create a new entry in the map
+      campaignDataMap.set(CAMPAIGN_REF_ID, {
+        count: 0,
+        responses: [],
+      });
     }
 
-    // Increment the count and save in the database
-    apiHit.count++;
-    apiHit.responses.push(JSON.stringify(req.body)); // Save the response data
+    // Update the count and responses for this CAMPAIGN_REF_ID
+    const campaignData = campaignDataMap.get(CAMPAIGN_REF_ID);
+    campaignData.count++;
+    campaignData.responses.push(JSON.stringify(responseData));
+
+    // Save the data to the database (you can customize this part based on your schema)
+    let apiHit = await campaignReport.findOne({ campaignRefId: CAMPAIGN_REF_ID });
+
+    if (!apiHit) {
+      apiHit = new campaignReport({ campaignRefId: CAMPAIGN_REF_ID });
+    }
+
+    apiHit.hits = [{
+      count: campaignData.count,
+      responses: campaignData.responses,
+    }];
+
     await apiHit.save();
 
-    // Log the API hit
-    console.log('API Hit Count:', apiHit.count);
-    console.log('Response Data:', req.body);
+    console.log('API Hit Count:', campaignData.count);
+    console.log('Response Data:', responseData);
 
-    // Respond with success
-    res.status(200).json({ message: 'API Hit recorded successfully.', count: apiHit.count, response: req.body });
+    res.status(200).json({ message: 'API Hit recorded successfully.' });
   } catch (error) {
     console.error('Error recording API hit:', error);
     res.status(500).json({ error: 'Internal Server Error' });
