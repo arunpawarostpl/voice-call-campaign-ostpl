@@ -39,6 +39,9 @@ router.post('/getdata', async (req, res) => {
     const responseData = req.body;
     const CAMPAIGN_REF_ID = responseData.CAMPAIGN_REF_ID;
 
+    // Log the campaignDataMap for debugging
+    console.log('campaignDataMap:', [...campaignDataMap]);
+
     // Check if there's existing data for this CAMPAIGN_REF_ID in the map
     if (!campaignDataMap.has(CAMPAIGN_REF_ID)) {
       console.error(`No existing entry found for CAMPAIGN_REF_ID: ${CAMPAIGN_REF_ID}`);
