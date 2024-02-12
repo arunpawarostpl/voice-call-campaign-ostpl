@@ -37,11 +37,9 @@ router.post('/getdata', async (req, res) => {
   try {
     const bulkResponses = req.body;
 
-    for (const bulkResponse of bulkResponses) {
-      const responseData = bulkResponse.data; // Assuming reference ID is in response.data
+    for (const responseData of bulkResponses) {
       const CAMPAIGN_REF_ID = responseData.CAMPAIGN_REF_ID;
 
-      // Find the existing document or skip if the campaign reference ID doesn't exist
       let apiHit = await campaignReport.findOne({ campaignRefId: CAMPAIGN_REF_ID });
 
       if (!apiHit) {
@@ -49,17 +47,15 @@ router.post('/getdata', async (req, res) => {
         continue;
       }
 
-      // Push the entire request body as a string to the responses array
-      apiHit.hits[0].responses.push(JSON.stringify(req.body));
+      apiHit.hits[0].responses.push(JSON.stringify(responseData));
+      apiHit.hits[0].count++;
 
       await apiHit.save();
 
-      // Log the API hit
       console.log('API Hit Count:', apiHit.hits[0].count);
       console.log('Response Data:', responseData);
     }
 
-    // Respond with success
     res.status(200).json({ message: 'Bulk API Hits recorded successfully.' });
   } catch (error) {
     console.error('Error recording bulk API hits:', error);
