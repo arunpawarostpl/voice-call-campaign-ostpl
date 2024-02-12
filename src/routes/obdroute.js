@@ -34,14 +34,36 @@ router.get("/getlist", async (req, res) => {
 
 
 router.post('/getdata', async (req, res) => {
-  const { campaignRefIds, bulkResponses } = req.body;
-
   try {
-    await updateCampaignReport(campaignRefIds, bulkResponses);
-    res.status(200).json({ success: true, message: 'Campaigns updated successfully' });
+    const bulkResponses = req.body;
+
+    for (const bulkResponse of bulkResponses) {
+      const responseData = bulkResponse.data; // Assuming reference ID is in response.data
+      const CAMPAIGN_REF_ID = responseData.CAMPAIGN_REF_ID;
+
+      // Find the existing document or skip if the campaign reference ID doesn't exist
+      let apiHit = await campaignReport.findOne({ campaignRefId: CAMPAIGN_REF_ID });
+
+      if (!apiHit) {
+        console.log(`Campaign reference ID ${CAMPAIGN_REF_ID} not found in the database. Skipping...`);
+        continue;
+      }
+
+      // Push the entire request body as a string to the responses array
+      apiHit.hits[0].responses.push(JSON.stringify(req.body));
+
+      await apiHit.save();
+
+      // Log the API hit
+      console.log('API Hit Count:', apiHit.hits[0].count);
+      console.log('Response Data:', responseData);
+    }
+
+    // Respond with success
+    res.status(200).json({ message: 'Bulk API Hits recorded successfully.' });
   } catch (error) {
-    console.error('Error updating campaigns:', error);
-    res.status(500).json({ success: false, message: 'Internal Server Error' });
+    console.error('Error recording bulk API hits:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
