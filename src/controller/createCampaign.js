@@ -225,6 +225,8 @@ console.log("Userinfo",userInfo);
     await startOBD(authtoken, obd_campaignId);
     console.log("campiagn start sucessfully");
     return res.status(200).json({ message: "Campaign created successfully" });
-  } catch (error) {}
+  } catch (error) {
+    
+  }
 }
 export { createObdCampaigning };

@@ -5,6 +5,7 @@ import { createObdCampaigning } from "../controller/createCampaign.js";
 import obdCampaignModel from "../models/obdCampaign.js";
 import path from "path";
 import axios from "axios";
+import ApiHit from "../models/report.js";
 const upload = multer({ storage: multer.memoryStorage() });
 const cpUpload = upload.fields([
   { name: "audioFile", maxCount: 1 },
@@ -12,15 +13,8 @@ const cpUpload = upload.fields([
 ]);
 
 router.post("/create-obd", cpUpload, async (req, res) => {
-  try {
-    console.log("enter in api");
-  
+  try {  
     await createObdCampaigning(req, res);
-    const apiUrl = 'https://calls.ostpl.com/obd/getdata';
-    const response = await axios.post(apiUrl);
-
-    // Handle the response data
-    console.log('API Response:', response.data);
   } catch (error) {
     console.error("Route error:", error);
     res.status(500).json({ message: "Route error", error: error.message });
@@ -37,70 +31,34 @@ router.get("/getlist", async (req, res) => {
   }
 });
 
-router.post('/getdata', (req, res) => {
+
+router.post('/getdata', async (req, res) => {
   try {
-    // Extracting request body parameters
-    const { 
-      CAMPAIGN_ID,
-      SERVICE_TYPE,
-      CALL_ID,
-      DNI,
-      A_PARTY_NO,
-      CALL_START_TIME,
-      A_PARTY_DIAL_START_TIME,
-      A_PARTY_DIAL_END_TIME,
-      A_PARTY_CONNECTED_TIME,
-      A_DIAL_STATUS,
-      A_PARTY_END_TIME,
-      OG_DURATION
-    } = req.body;
+    // Find the existing count or create a new record if not exists
+    let apiHit = await ApiHit.findOne();
 
-    // Log the received data to the console
-    console.log('Received data:', req.body);
-
-    // Validate if required parameters are present
-    if (!CAMPAIGN_ID || !SERVICE_TYPE || !CALL_ID) {
-      throw new Error('Missing required parameters.');
+    if (!apiHit) {
+      apiHit = new ApiHit();
     }
 
-    // Respond with the desired JSON structure
-    const responseData = {
-      CAMPAIGN_ID,
-      SERVICE_TYPE,
-      CALL_ID,
-      DNI,
-      A_PARTY_NO,
-      CALL_START_TIME,
-      A_PARTY_DIAL_START_TIME,
-      A_PARTY_DIAL_END_TIME,
-      A_PARTY_CONNECTED_TIME,
-      A_DIAL_STATUS,
-      A_PARTY_END_TIME,
-      OG_DURATION
-    };
-console.log("Response Data",responseData);
-    res.status(200).json(responseData);
+    // Increment the count and save in the database
+    apiHit.count++;
+    await apiHit.save();
+
+    // Log the API hit
+    console.log('API Hit Count:', apiHit.count);
+
+    // Respond with success
+    res.status(200).json({ message: 'API Hit recorded successfully.', count: apiHit.count });
   } catch (error) {
-    console.error('Error:', error.message);
-    res.status(400).json({ status: 'Error', message: error.message });
+    console.error('Error recording API hit:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
 
-async function fetchDataFromApi() {
-  const apiUrl = 'https://calls.ostpl.com/obd/getdata';
 
-  try {
-    const response = await axios.get(apiUrl);
-    console.log('Response:', response.data);
-    // Handle the response data or perform further actions
-  } catch (error) {
-    console.error('Error:', error.message);
-    // Handle errors
-  }
-}
 
-// Call the function to fetch data from the API
 
 
 
