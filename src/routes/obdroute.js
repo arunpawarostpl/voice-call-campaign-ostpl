@@ -37,8 +37,7 @@ router.post('/getdata', async (req, res) => {
     const bulkResponses = req.body;
 
     for (const bulkResponse of bulkResponses) {
-      const responseData = bulkResponse.data; // Assuming reference ID is in response.data
-      const CAMPAIGN_REF_ID = responseData.CAMPAIGN_REF_ID;
+      const { CAMPAIGN_REF_ID, ...responseData } = bulkResponse;
 
       // Find the existing document or create a new one if not exists
       let apiHit = await campaignReport.findOne({ campaignRefId: CAMPAIGN_REF_ID });
