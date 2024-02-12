@@ -35,30 +35,26 @@ router.get("/getlist", async (req, res) => {
 
 router.post('/getdata', async (req, res) => {
   try {
-    const bulkResponses = req.body;
+    // Find the existing count or create a new record if not exists
+    let apiHit = await campaignReport.findOne();
 
-    for (const responseData of bulkResponses) {
-      const CAMPAIGN_REF_ID = responseData.CAMPAIGN_REF_ID;
-
-      let apiHit = await campaignReport.findOne({ campaignRefId: CAMPAIGN_REF_ID });
-
-      if (!apiHit) {
-        console.log(`Campaign reference ID ${CAMPAIGN_REF_ID} not found in the database. Skipping...`);
-        continue;
-      }
-
-      apiHit.hits[0].responses.push(JSON.stringify(responseData));
-      apiHit.hits[0].count++;
-
-      await apiHit.save();
-
-      console.log('API Hit Count:', apiHit.hits[0].count);
-      console.log('Response Data:', responseData);
+    if (!apiHit) {
+      apiHit = new campaignReport();
     }
 
-    res.status(200).json({ message: 'Bulk API Hits recorded successfully.' });
+    // Increment the count and save in the database
+    apiHit.count++;
+    apiHit.responses.push(JSON.stringify(req.body)); // Save the response data
+    await apiHit.save();
+
+    // Log the API hit
+    console.log('API Hit Count:', apiHit.count);
+    console.log('Response Data:', req.body);
+
+    // Respond with success
+    res.status(200).json({ message: 'API Hit recorded successfully.', count: apiHit.count, response: req.body });
   } catch (error) {
-    console.error('Error recording bulk API hits:', error);
+    console.error('Error recording API hit:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
