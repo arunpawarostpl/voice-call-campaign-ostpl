@@ -65,39 +65,21 @@ router.post('/getdata', async (req, res) => {
     campaignData.responses.push(responseData);
 
     // Save the data to the database (you can customize this part based on your schema)
-    let apiHit = await campaignReport.findOne({ campaignRefId: CAMPAIGN_REF_ID });
+    const apiHit = await campaignReport.findOneAndUpdate(
+      { campaignRefId: CAMPAIGN_REF_ID },
+      {
+        $set: {
+          'hits.0.count': campaignData.count,
+          'hits.0.responses': campaignData.responses,
+        },
+      },
+      { upsert: true, new: true }
+    );
 
-    if (apiHit) {
-      apiHit.hits[0] = {
-        count: campaignData.count,
-        responses: campaignData.responses,
-      };
+    console.log('API Hit Count:', campaignData.count);
+    console.log('Response Data:', responseData);
 
-      await apiHit.save();
-
-      console.log('API Hit Count:', campaignData.count);
-      console.log('Response Data:', responseData);
-
-      return res.status(200).json({ message: 'API Hit recorded successfully.' });
-    } else {
-      // If no document is found, create a new one
-      apiHit = new campaignReport({
-        campaignRefId: CAMPAIGN_REF_ID,
-        hits: [
-          {
-            count: campaignData.count,
-            responses: campaignData.responses,
-          },
-        ],
-      });
-
-      await apiHit.save();
-
-      console.log('New API Hit Count:', campaignData.count);
-      console.log('Response Data:', responseData);
-
-      return res.status(200).json({ message: 'New API Hit recorded successfully.' });
-    }
+    return res.status(200).json({ message: 'API Hit recorded successfully.' });
   } catch (error) {
     console.error('Error recording API hit:', error);
     return res.status(500).json({ error: 'Internal Server Error' });
