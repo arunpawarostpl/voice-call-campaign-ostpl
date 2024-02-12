@@ -33,7 +33,7 @@ router.get("/getlist", async (req, res) => {
 });
 
 async function fethdata (){
-  await campaignReport.find();
+ const existingApiHits= await campaignReport.find();
 
   existingApiHits.forEach((hit) => {
     campaignDataMap.set(hit.campaignRefId, {
