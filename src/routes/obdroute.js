@@ -41,11 +41,9 @@ router.post('/getdata', async (req, res) => {
 
     // Check if there's existing data for this CAMPAIGN_REF_ID in the map
     if (!campaignDataMap.has(CAMPAIGN_REF_ID)) {
-      // If not, create a new entry in the map
-      campaignDataMap.set(CAMPAIGN_REF_ID, {
-        count: 0,
-        responses: [],
-      });
+      console.error(`No existing entry found for CAMPAIGN_REF_ID: ${CAMPAIGN_REF_ID}`);
+      res.status(404).json({ error: 'No existing entry found for CAMPAIGN_REF_ID' });
+      return;
     }
 
     // Update the count and responses for this CAMPAIGN_REF_ID
@@ -54,23 +52,24 @@ router.post('/getdata', async (req, res) => {
     campaignData.responses.push(JSON.stringify(responseData));
 
     // Save the data to the database (you can customize this part based on your schema)
-    let apiHit = await campaignReport.findOne({ campaignRefId: CAMPAIGN_REF_ID });
+    const apiHit = await campaignReport.findOne({ campaignRefId: CAMPAIGN_REF_ID });
 
-    if (!apiHit) {
-      apiHit = new campaignReport({ campaignRefId: CAMPAIGN_REF_ID });
+    if (apiHit) {
+      apiHit.hits[0] = {
+        count: campaignData.count,
+        responses: campaignData.responses,
+      };
+
+      await apiHit.save();
+
+      console.log('API Hit Count:', campaignData.count);
+      console.log('Response Data:', responseData);
+
+      res.status(200).json({ message: 'API Hit recorded successfully.' });
+    } else {
+      console.error(`No existing entry found for CAMPAIGN_REF_ID: ${CAMPAIGN_REF_ID}`);
+      res.status(404).json({ error: 'No existing entry found for CAMPAIGN_REF_ID' });
     }
-
-    apiHit.hits = [{
-      count: campaignData.count,
-      responses: campaignData.responses,
-    }];
-
-    await apiHit.save();
-
-    console.log('API Hit Count:', campaignData.count);
-    console.log('Response Data:', responseData);
-
-    res.status(200).json({ message: 'API Hit recorded successfully.' });
   } catch (error) {
     console.error('Error recording API hit:', error);
     res.status(500).json({ error: 'Internal Server Error' });
