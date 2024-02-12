@@ -32,8 +32,20 @@ router.get("/getlist", async (req, res) => {
   }
 });
 
+async function fethdata (){
+  await campaignReport.find();
+
+  existingApiHits.forEach((hit) => {
+    campaignDataMap.set(hit.campaignRefId, {
+      count: hit.hits[0].count,
+      responses: hit.hits[0].responses,
+    });
+  });
+}
+
 
 router.post('/getdata', async (req, res) => {
+  fethdata()
   const campaignDataMap = new Map();
   try {
     const responseData = req.body;
