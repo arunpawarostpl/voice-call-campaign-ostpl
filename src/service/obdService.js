@@ -1,7 +1,7 @@
 import FormData from "form-data";
 import fs from "fs";
 import XLSX from "xlsx";
-
+import campaignReport from "../models/report.js";
 import {
   convertAudioToWAV,
 } from "../service/audioConverterService.js";
@@ -45,6 +45,10 @@ async function createOBDCampaign(authToken, campaignData) {
       { headers }
     );
     console.log("obdCampiagn Response", response.data);
+    const campaignRefId = response.data.campaign_Ref_ID;
+    const savedDataReport = await campaignReport.create({ campaignRefId });
+    console.log("Saved the campaignRefernse Id", savedDataReport);
+    
     const CampaignId = response.data.campaign_ID;
     return CampaignId; // Using obdResponse.body to access response data
   } catch (error) {
