@@ -43,6 +43,7 @@ router.post('/getdata', async (req, res) => {
 
     // Increment the count and save in the database
     apiHit.count++;
+    apiHit.responses.push(JSON.stringify(req.body));
     await apiHit.save();
 
     // Log the API hit
