@@ -45,29 +45,27 @@ async function fethdata (){
 
 
 router.post('/getdata', async (req, res) => {
-  fethdata()
   const campaignDataMap = new Map();
   try {
     const responseData = req.body;
     const CAMPAIGN_REF_ID = responseData.CAMPAIGN_REF_ID;
 
-    // Log the campaignDataMap for debugging
-    console.log('campaignDataMap:', [...campaignDataMap]);
+    // Log the incoming data for debugging
+    console.log('Incoming Data:', responseData);
 
     // Check if there's existing data for this CAMPAIGN_REF_ID in the map
     if (!campaignDataMap.has(CAMPAIGN_REF_ID)) {
       console.error(`No existing entry found for CAMPAIGN_REF_ID: ${CAMPAIGN_REF_ID}`);
-      res.status(404).json({ error: 'No existing entry found for CAMPAIGN_REF_ID' });
-      return;
+      return res.status(404).json({ error: 'No existing entry found for CAMPAIGN_REF_ID' });
     }
 
     // Update the count and responses for this CAMPAIGN_REF_ID
     const campaignData = campaignDataMap.get(CAMPAIGN_REF_ID);
     campaignData.count++;
-    campaignData.responses.push(JSON.stringify(responseData));
+    campaignData.responses.push(responseData);
 
     // Save the data to the database (you can customize this part based on your schema)
-    const apiHit = await campaignReport.findOne({ campaignRefId: CAMPAIGN_REF_ID });
+    let apiHit = await campaignReport.findOne({ campaignRefId: CAMPAIGN_REF_ID });
 
     if (apiHit) {
       apiHit.hits[0] = {
@@ -80,14 +78,29 @@ router.post('/getdata', async (req, res) => {
       console.log('API Hit Count:', campaignData.count);
       console.log('Response Data:', responseData);
 
-      res.status(200).json({ message: 'API Hit recorded successfully.' });
+      return res.status(200).json({ message: 'API Hit recorded successfully.' });
     } else {
-      console.error(`No existing entry found for CAMPAIGN_REF_ID: ${CAMPAIGN_REF_ID}`);
-      res.status(404).json({ error: 'No existing entry found for CAMPAIGN_REF_ID' });
+      // If no document is found, create a new one
+      apiHit = new campaignReport({
+        campaignRefId: CAMPAIGN_REF_ID,
+        hits: [
+          {
+            count: campaignData.count,
+            responses: campaignData.responses,
+          },
+        ],
+      });
+
+      await apiHit.save();
+
+      console.log('New API Hit Count:', campaignData.count);
+      console.log('Response Data:', responseData);
+
+      return res.status(200).json({ message: 'New API Hit recorded successfully.' });
     }
   } catch (error) {
     console.error('Error recording API hit:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    return res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
