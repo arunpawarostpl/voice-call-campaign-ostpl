@@ -6,6 +6,7 @@ import obdCampaignModel from "../models/obdCampaign.js";
 import path from "path";
 import axios from "axios";
 import campaignReport from "../models/report.js";
+import updateCampaignReport from "../service/reportService.js";
 const upload = multer({ storage: multer.memoryStorage() });
 const cpUpload = upload.fields([
   { name: "audioFile", maxCount: 1 },
@@ -33,44 +34,14 @@ router.get("/getlist", async (req, res) => {
 
 
 router.post('/getdata', async (req, res) => {
+  const { campaignRefIds, bulkResponses } = req.body;
+
   try {
-    const bulkResponses = req.body;
-
-    for (const bulkResponse of bulkResponses) {
-      const { CAMPAIGN_REF_ID, ...responseData } = bulkResponse;
-
-      // Find the existing document or create a new one if not exists
-      let apiHit = await campaignReport.findOne({ campaignRefId: CAMPAIGN_REF_ID });
-
-      if (!apiHit) {
-        apiHit = new campaignReport({ campaignRefId: CAMPAIGN_REF_ID });
-      }
-
-      // Check if a hit with the same response data exists
-      const existingHitIndex = apiHit.hits.findIndex(hit =>
-        hit.responses.some(existingResponse => compareResponses(existingResponse, responseData))
-      );
-
-      if (existingHitIndex !== -1) {
-        // Update existing hit
-        apiHit.hits[existingHitIndex].count++;
-      } else {
-        // Create a new hit
-        apiHit.hits.push({ count: 1, responses: [responseData] });
-      }
-
-      await apiHit.save();
-
-      // Log the API hit
-      console.log('API Hit Count:', apiHit.hits[existingHitIndex].count);
-      console.log('Response Data:', responseData);
-    }
-
-    // Respond with success
-    res.status(200).json({ message: 'Bulk API Hits recorded successfully.' });
+    await updateCampaignReport(campaignRefIds, bulkResponses);
+    res.status(200).json({ success: true, message: 'Campaigns updated successfully' });
   } catch (error) {
-    console.error('Error recording API hit:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error('Error updating campaigns:', error);
+    res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
 });
 
