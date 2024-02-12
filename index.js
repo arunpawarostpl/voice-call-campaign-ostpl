@@ -6,6 +6,7 @@ import cors from 'cors'
 import helmet from 'helmet'
 import userRoute from './src/routes/userRoute.js'
 import obdroute from './src/routes/obdroute.js'
+import reportroute from "./src/routes/report.js"
 import path from "path"
 dotenv.config();
 
@@ -25,6 +26,7 @@ app.use(express.static('public'))
 
 app.use('/', userRoute)
 app.use('/obd', obdroute)
+app.use('/api',reportroute)
 const PORT = process.env.PORT || 3000
 
 mongoose
