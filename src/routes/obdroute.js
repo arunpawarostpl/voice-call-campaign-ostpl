@@ -45,7 +45,6 @@ async function fethdata (){
 
 
 router.post('/getdata', async (req, res) => {
-  const campaignDataMap = new Map();
   try {
     const responseData = req.body;
     const CAMPAIGN_REF_ID = responseData.CAMPAIGN_REF_ID;
@@ -53,30 +52,17 @@ router.post('/getdata', async (req, res) => {
     // Log the incoming data for debugging
     console.log('Incoming Data:', responseData);
 
-    // Check if there's existing data for this CAMPAIGN_REF_ID in the map
-    if (!campaignDataMap.has(CAMPAIGN_REF_ID)) {
-      console.error(`No existing entry found for CAMPAIGN_REF_ID: ${CAMPAIGN_REF_ID}`);
-      return res.status(404).json({ error: 'No existing entry found for CAMPAIGN_REF_ID' });
-    }
-
     // Update the count and responses for this CAMPAIGN_REF_ID
-    const campaignData = campaignDataMap.get(CAMPAIGN_REF_ID);
-    campaignData.count++;
-    campaignData.responses.push(responseData);
-
-    // Save the data to the database (you can customize this part based on your schema)
     const apiHit = await campaignReport.findOneAndUpdate(
       { campaignRefId: CAMPAIGN_REF_ID },
       {
-        $set: {
-          'hits.0.count': campaignData.count,
-          'hits.0.responses': campaignData.responses,
-        },
+        $inc: { 'hits.0.count': 1 }, // Increment the count
+        $push: { 'hits.0.responses': responseData }, // Add the response
       },
       { upsert: true, new: true }
     );
 
-    console.log('API Hit Count:', campaignData.count);
+    console.log('API Hit Count:', apiHit.hits[0].count);
     console.log('Response Data:', responseData);
 
     return res.status(200).json({ message: 'API Hit recorded successfully.' });
