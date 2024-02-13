@@ -46,7 +46,7 @@ async function fethdata (){
 
 router.post('/getdata', async (req, res) => {
   try {
-    const responseData = req.body;
+    const responseData = req.body;  // Assuming req.body is already parsed JSON
     const CAMPAIGN_REF_ID = responseData.CAMPAIGN_REF_ID;
 
     // Log the incoming data for debugging
