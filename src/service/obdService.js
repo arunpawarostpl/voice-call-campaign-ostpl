@@ -8,6 +8,7 @@ import {
 import obdCampaignModel from "../models/obdCampaign.js";
 import axios from "axios";
 
+
 // axios.create({
 //   baseURL: "https://cts.myvi.in:8443/Cpaas/api/obdcampaignapi/",
 // });
@@ -30,7 +31,7 @@ async function obdLogin(username, password) {
     throw error; // Propagate the error
   }
 }
-async function createOBDCampaign(authToken, campaignData) {
+async function createOBDCampaign(authToken, campaignData,campaign_ID) {
   try {
     const headers = {
       Authorization: `Bearer ${authToken}`, // Added space after 'Bearer'
@@ -46,6 +47,12 @@ async function createOBDCampaign(authToken, campaignData) {
     );
     console.log("obdCampiagn Response", response.data);
     const campaignRefId = response.data.campaign_Ref_ID;
+  
+   const campaign_data = await obdCampaignModel.findById(campaign_ID);
+   campaign_data.campaign_ref_Id = campaignRefId;
+   await campaign_data.save();
+
+
     const savedDataReport = await campaignReport.create({ campaignRefId });
     console.log("Saved the campaignRefernse Id", savedDataReport);
     

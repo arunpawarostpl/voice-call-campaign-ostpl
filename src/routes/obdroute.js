@@ -6,7 +6,6 @@ import obdCampaignModel from "../models/obdCampaign.js";
 import path from "path";
 import axios from "axios";
 import campaignReport from "../models/report.js";
-import updateCampaignReport from "../service/reportService.js";
 const upload = multer({ storage: multer.memoryStorage() });
 const cpUpload = upload.fields([
   { name: "audioFile", maxCount: 1 },
@@ -25,6 +24,7 @@ router.post("/create-obd", cpUpload, async (req, res) => {
 router.get("/getlist", async (req, res) => {
   try {
     const list = await obdCampaignModel.find({}).select("-audio.data");
+    console.log("list",list);
     res.json(list);
   } catch (error) {
     console.error("Error fetching data:", error);
