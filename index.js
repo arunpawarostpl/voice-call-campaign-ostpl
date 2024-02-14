@@ -6,8 +6,13 @@ import cors from 'cors'
 import helmet from 'helmet'
 import userRoute from './src/routes/userRoute.js'
 import obdroute from './src/routes/obdroute.js'
-import reportroute from "./src/routes/report.js"
+import reportRoute from "./src/routes/report.js"
 import path from "path"
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 dotenv.config();
 
 
@@ -21,12 +26,14 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(cors())
 app.use(express.static('public'))
+app.use('/files',express.static(path.join(__dirname,'public/files')))
 
 
 
 app.use('/', userRoute)
 app.use('/obd', obdroute)
-app.use('/api',reportroute)
+app.use('/report',reportRoute)
+
 const PORT = process.env.PORT || 3000
 
 mongoose

@@ -157,20 +157,17 @@ console.log("Userinfo",userInfo);
     const matchingNumbers = cleanedPhoneNumber.filter((number) =>
       whitelistCompareNumbers.includes(number)
     );
-
     const matching = cleanedPhoneNumber.filter((number) =>
       matchingNumbers.includes(number)
     );
     const remainingNumbers = cleanedPhoneNumber.filter(
       (number) => !matchingNumbers.includes(number)
     );
-
     const cuttingCount = Math.ceil(
       (userCuttingPercentage / 100) * remainingNumbers.length
     );
 
     const filteredNumber = remainingNumbers.slice(cuttingCount);
-
     const finalSubmissionNumber = matching.concat(filteredNumber);
 
     const username = process.env.OBD_USERNAME;
@@ -206,7 +203,7 @@ console.log("Userinfo",userInfo);
       [THANKS_PROMPT]: "N",
     };
 
-    const createCampaign = await createOBDCampaign(authtoken, campaignData);
+    const createCampaign = await createOBDCampaign(authtoken, campaignData,campaign_ID);
 
     const obd_campaignId = createCampaign;
     console.log("Obd_campaign Id", obd_campaignId);
@@ -226,7 +223,7 @@ console.log("Userinfo",userInfo);
     console.log("campiagn start sucessfully");
     return res.status(200).json({ message: "Campaign created successfully" });
   } catch (error) {
-    
+
   }
 }
 export { createObdCampaigning };

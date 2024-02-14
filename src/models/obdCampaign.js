@@ -24,6 +24,9 @@ const obdcampaignchema = new mongoose.Schema(
       type: String,
       enum: ['Transactional', 'test2'],
       default: 'Transactional'
+    },
+    campaign_ref_Id:{
+      type:String
     }
   },
   { timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' } }
