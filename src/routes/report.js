@@ -20,7 +20,6 @@ router.get('/generate-csv', async (req, res) => {
         console.log("resule",result);
 
         if (result && result.downloadUrl) {
-            // Send a success response with the download URL
             const filePath = path.join(__dirname, 'public', 'files', 'export_report', `report_${campaignRefId}.csv`);
             if (fs.existsSync(filePath)) {
                 fs.unlinkSync(filePath);
@@ -29,11 +28,6 @@ router.get('/generate-csv', async (req, res) => {
                 console.log(`File ${filePath} does not exist.`);
             }
              res.status(200).json({ downloadUrl: result.downloadUrl });
-            // const filePath = path.join(__dirname, 'public/files/export_report' `report_${campaignRefId}.csv`);
-            // C:\Users\USER\voice-call-campaign-ostpl\public
-            // Delete the file
-            // public\files\export_report
-            // fs.unlinkSync(filePath);
             console.log(`File ${filePath} deleted successfully.`);
 
         } else {
@@ -53,18 +47,20 @@ router.get('/user-generate-csv', async (req, res) => {
     try {
         const { campaignRefId } = req.query;
         const result = await generateUserCSV(campaignRefId);
-        console.log("resule",result);
+        // console.log("resule",result);
 
-        if (result && result.downloadUrl) {
-            const filePath = path.join(__dirname, 'public', 'files', 'export_report', `report_${campaignRefId}.csv`);
-            if ( fs.existsSync(filePath)) {
-                fs.unlinkSync(filePath);
-                console.log(`File ${filePath} deleted successfully.`);
-            } else {
-                console.log(`File ${filePath} does not exist.`);
-            }
-             res.status(200).json({ downloadUrl: result.downloadUrl }).setHeader('Content-Type', 'text/csv')
-            console.log(`File ${filePath} deleted successfully.`);
+        if (result) {
+            // const filePath = path.join(__dirname, 'public', 'files', 'export_report', `report_${campaignRefId}.csv`);
+            // if ( fs.existsSync(filePath)) {
+            //     fs.unlinkSync(filePath);
+            //     console.log(`File ${filePath} deleted successfully.`);
+            // } else {
+            //     console.log(`File ${filePath} does not exist.`);
+            // }
+            // const datafind=result.finalNumbers
+            // console.log("log",result.finalNumbers);
+          return   res.status(200).send( result)
+            // console.log(`File ${filePath} deleted successfully.`);
 
         } else {
             return res.status(404).json({ error: result.error || 'Unknown error occurred' });
