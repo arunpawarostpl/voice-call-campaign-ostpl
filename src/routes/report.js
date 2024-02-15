@@ -56,24 +56,17 @@ router.get('/user-generate-csv', async (req, res) => {
         console.log("resule",result);
 
         if (result && result.downloadUrl) {
-            // Send a success response with the download URL
             const filePath = path.join(__dirname, 'public', 'files', 'export_report', `report_${campaignRefId}.csv`);
-            if (fs.existsSync(filePath)) {
+            if ( fs.existsSync(filePath)) {
                 fs.unlinkSync(filePath);
                 console.log(`File ${filePath} deleted successfully.`);
             } else {
                 console.log(`File ${filePath} does not exist.`);
             }
-             res.status(200).json({ downloadUrl: result.downloadUrl });
-            // const filePath = path.join(__dirname, 'public/files/export_report' `report_${campaignRefId}.csv`);
-            // C:\Users\USER\voice-call-campaign-ostpl\public
-            // Delete the file
-            // public\files\export_report
-            // fs.unlinkSync(filePath);
+             res.status(200).json({ downloadUrl: result.downloadUrl }).header('Access-Control-Allow-Credentials', 'true');;;
             console.log(`File ${filePath} deleted successfully.`);
 
         } else {
-            // Send an error response with the appropriate message
             return res.status(404).json({ error: result.error || 'Unknown error occurred' });
         }
 
