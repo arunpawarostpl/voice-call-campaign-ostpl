@@ -108,7 +108,9 @@ const fetchDataFromDB = async (CAMPAIGN_REF_ID) => {
 
   async function generateUserCSV(campaignRefId) {
     try {
-
+console.log(
+    "inter in a func"
+);
         const dataFromDB = await fetchDataFromDB(campaignRefId);
         const camapaignNumber=await obdCampaignModel.findOne({campaign_ref_Id:campaignRefId})
         
@@ -131,53 +133,54 @@ const fetchDataFromDB = async (CAMPAIGN_REF_ID) => {
           }
 
           shuffleArray(finalNumbers);
-const csvStream= csv.format({
-    headers:true
-});
+// const csvStream= csv.format({
+//     headers:true
+// });
 
 
-const exportReportDir = 'public/files/export_report';
+// const exportReportDir = 'public/files/export_report';
 
-if (!fs.existsSync('public')) {
-    fs.mkdirSync('public');
-}
+// if (!fs.existsSync('public')) {
+//     fs.mkdirSync('public');
+// }
 
-// Ensure 'public/files' directory exists
-if (!fs.existsSync('public/files')) {
-    fs.mkdirSync('public/files');
-}
+// // Ensure 'public/files' directory exists
+// if (!fs.existsSync('public/files')) {
+//     fs.mkdirSync('public/files');
+// }
 
-// Ensure 'public/files/export_report' directory exists
-if (!fs.existsSync(exportReportDir)) {
-    fs.mkdirSync(exportReportDir);
-}
+// // Ensure 'public/files/export_report' directory exists
+// if (!fs.existsSync(exportReportDir)) {
+//     fs.mkdirSync(exportReportDir);
+// }
 
-const writableStream= fs.createWriteStream(
-    `public/files/export_report/report_${campaignRefId}.csv`
+// const writableStream= fs.createWriteStream(
+//     `public/files/export_report/report_${campaignRefId}.csv`
 
-);
+// );
 
-csvStream.pipe(writableStream)
+// csvStream.pipe(writableStream)
 
-if(finalNumbers.length>0){
-    finalNumbers.map(data=>{
-        csvStream.write({
-            Customer_Number:data.A_PARTY_NO?data.A_PARTY_NO:'-',
-            Status:data.A_DIAL_STATUS?data.A_DIAL_STATUS:'-',
-        })
-    })
-}
+// if(finalNumbers.length>0){
+//     finalNumbers.map(data=>{
+//         csvStream.write({
+//             Customer_Number:data.A_PARTY_NO?data.A_PARTY_NO:'-',
+//             Status:data.A_DIAL_STATUS?data.A_DIAL_STATUS:'-',
+//         })
+//     })
+// }
 
-csvStream.end();
-writableStream.end()
-return new Promise((resolve) => {
-    writableStream.on('finish', () => {
-        resolve({
-            downloadUrl: `/files/export_report/report_${campaignRefId}.csv`
-        });
-    });
-});
-        return { success: true, message: 'CSV file generated successfully.'  };
+// csvStream.end();
+// writableStream.end()
+// return new Promise((resolve) => {
+//     writableStream.on('finish', () => {
+//         resolve({
+//             downloadUrl: `/files/export_report/report_${campaignRefId}.csv`
+//         });
+//     });
+// });
+shuffleArray(finalNumbers)
+        return (finalNumbers);
   } 
        catch (error) {
         console.error('Error generating CSV:', error);
