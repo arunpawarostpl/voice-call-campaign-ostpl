@@ -63,7 +63,7 @@ router.get('/user-generate-csv', async (req, res) => {
             } else {
                 console.log(`File ${filePath} does not exist.`);
             }
-             res.status(200).json({ downloadUrl: result.downloadUrl }).header('Access-Control-Allow-Credentials', 'true');;;
+             res.status(200).json({ downloadUrl: result.downloadUrl }).setHeader('Content-Type', 'text/csv')
             console.log(`File ${filePath} deleted successfully.`);
 
         } else {
