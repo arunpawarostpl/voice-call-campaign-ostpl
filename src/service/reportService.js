@@ -1,6 +1,4 @@
-// reportService.js
 
-// import createCsvWriter from 'csv-writer/createObjectCsvWriter';
 import { createObjectCsvWriter } from 'csv-writer';
 
 import campaignReport from '../models/report.js'; // Replace with your actual path
@@ -16,57 +14,8 @@ async function generateCSV(campaignRefId) {
         if (dataFromDB.length === 0) {
             return({ error: 'No data found for the provided CAMPAIGN_REF_ID' });
           }
+return(dataFromDB)
 
-const csvStream= csv.format({
-    headers:true
-});
-
-
-const exportReportDir = 'public/files/export_report';
-
-if (!fs.existsSync('public')) {
-    fs.mkdirSync('public');
-}
-
-// Ensure 'public/files' directory exists
-if (!fs.existsSync('public/files')) {
-    fs.mkdirSync('public/files');
-}
-
-// Ensure 'public/files/export_report' directory exists
-if (!fs.existsSync(exportReportDir)) {
-    fs.mkdirSync(exportReportDir);
-}
-
-const writableStream= fs.createWriteStream(
-    `public/files/export_report/report_${campaignRefId}.csv`
-
-);
-
-csvStream.pipe(writableStream)
-
-if(dataFromDB.length>0){
-    dataFromDB.map(data=>{
-        csvStream.write({
-            Ref_id:data.CAMPAIGN_REF_ID? data.CAMPAIGN_REF_ID:'-',
-            DNI :data.DNI?data.DNI:'-',
-            Customer_Number:data.A_PARTY_NO?data.A_PARTY_NO:'-',
-            Status:data.A_DIAL_STATUS?data.A_DIAL_STATUS:'-',
-            Duration:data.OG_DURATION?data.OG_DURATION:'-',
-        })
-    })
-}
-
-csvStream.end();
-writableStream.end()
-return new Promise((resolve) => {
-    writableStream.on('finish', () => {
-        resolve({
-            downloadUrl: `/files/export_report/report_${campaignRefId}.csv`
-        });
-    });
-});
-        // return { success: true, message: 'CSV file generated successfully.'  };
   } 
        catch (error) {
         console.error('Error generating CSV:', error);
@@ -108,17 +57,11 @@ const fetchDataFromDB = async (CAMPAIGN_REF_ID) => {
 
   async function generateUserCSV(campaignRefId) {
     try {
-console.log(
-    "inter in a func"
-);
+
         const dataFromDB = await fetchDataFromDB(campaignRefId);
         const camapaignNumber=await obdCampaignModel.findOne({campaign_ref_Id:campaignRefId})
-        
-        console.log("Numbers",campaignRefId);
         const UserNumbers= camapaignNumber.numbers
         const missingNumbers = UserNumbers.filter(UserNumbers => !dataFromDB.some(record => record.A_PARTY_NO === UserNumbers));
-        console.log("missingNumbers",missingNumbers);
-
         const usersNumberList = missingNumbers.map(UserNumbers => ({
             A_PARTY_NO: UserNumbers,
             A_DIAL_STATUS: 'connected' 
@@ -133,52 +76,6 @@ console.log(
           }
 
           shuffleArray(finalNumbers);
-// const csvStream= csv.format({
-//     headers:true
-// });
-
-
-// const exportReportDir = 'public/files/export_report';
-
-// if (!fs.existsSync('public')) {
-//     fs.mkdirSync('public');
-// }
-
-// // Ensure 'public/files' directory exists
-// if (!fs.existsSync('public/files')) {
-//     fs.mkdirSync('public/files');
-// }
-
-// // Ensure 'public/files/export_report' directory exists
-// if (!fs.existsSync(exportReportDir)) {
-//     fs.mkdirSync(exportReportDir);
-// }
-
-// const writableStream= fs.createWriteStream(
-//     `public/files/export_report/report_${campaignRefId}.csv`
-
-// );
-
-// csvStream.pipe(writableStream)
-
-// if(finalNumbers.length>0){
-//     finalNumbers.map(data=>{
-//         csvStream.write({
-//             Customer_Number:data.A_PARTY_NO?data.A_PARTY_NO:'-',
-//             Status:data.A_DIAL_STATUS?data.A_DIAL_STATUS:'-',
-//         })
-//     })
-// }
-
-// csvStream.end();
-// writableStream.end()
-// return new Promise((resolve) => {
-//     writableStream.on('finish', () => {
-//         resolve({
-//             downloadUrl: `/files/export_report/report_${campaignRefId}.csv`
-//         });
-//     });
-// });
 shuffleArray(finalNumbers)
         return (finalNumbers);
   } 
