@@ -229,13 +229,15 @@ router.get('/users/:id', async (req, res) => {
   }
 })
 
-router.delete('/users/:id', async (req, res) => {
+router.get('/user-campaigns', async (req, res) => {
   try {
-    const deletedUser = await user.findByIdAndDelete(req.params.id)
-    if (!deletedUser) {
+    const token = req.headers.authorization;
+    const { UserId } = verifyToken(token)
+    const getUserList = await obdCampaignModel.find({createdBy:UserId})
+    if (!getUserList) {
       return res.status(404).json({ message: 'User not found' })
     }
-    res.json({ message: 'User deleted' })
+   return res.send(getUserList)
   } catch (error) {
     res.status(500).json({ message: error.message })
   }

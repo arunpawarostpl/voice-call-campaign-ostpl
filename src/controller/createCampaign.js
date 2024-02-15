@@ -65,8 +65,6 @@ async function createObdCampaigning(req, res) {
     const csvBuffer = numberBuffer.buffer;
     const csvString = csvBuffer.toString("utf-8");
     const audioBuffer = audio.buffer;
-    console.log("Audio details", audio);
-
     const phoneNumbers = csvString
       .split("\n")
       .map((row) => row.trim())
@@ -94,6 +92,7 @@ async function createObdCampaigning(req, res) {
     const audioMetadata = await getDuration(outputFilePath)
       .then((duration) => {
         fs.unlinkSync(outputFilePath);
+        console.log("duration",duration);
         return duration;
       })
       .catch((error) => {
@@ -103,24 +102,23 @@ async function createObdCampaigning(req, res) {
                const senderNumber=cleanedPhoneNumber.length
                const creditsNeeded = calculateCreditsNeeded(calculatedDuration);
                const totalCredit=senderNumber*creditsNeeded
-
                const userInfo = await user.findOne({ _id:UserId });
-         if(!userInfo.role==="admin"){
-console.log("Userinfo",userInfo);
-               if(userInfo.credits >= creditsNeeded){
-                const updatedCredits = userInfo.credits - totalCredit;
-                await user.updateOne({_id: UserId }, { $set: { credits: updatedCredits } });
-               }else{
-                console.error("error")
-               }}
-
-
-    const saveObdCampaign = await obdCampaignModel.create({
-      obdcampaignname: CampaigName,
-      description,
-      createdBy: UserId,
-      role: UserRole,
-      audio: {
+               
+               if(!(userInfo.role === "admin")){
+                 if(userInfo.credits >= creditsNeeded){
+                   const updatedCredits = userInfo.credits - totalCredit;
+                 const up=  await user.updateOne({_id: UserId }, { $set: { credits: updatedCredits } });
+                }else{
+                  console.error("error")
+                }}
+                
+                
+                const saveObdCampaign = await obdCampaignModel.create({
+                  obdcampaignname: CampaigName,
+                  description,
+                  createdBy: UserId,
+                  role: UserRole,
+                  audio: {
         filename: orignalName,
         data: buffer,
       },
@@ -152,11 +150,13 @@ console.log("Userinfo",userInfo);
     const getCutting = await user.findOne({ _id: UserId });
     const userCuttingPercentage = getCutting.cutting_percentage;
     const whitelistCompare = await whiteList.findOne({ createdBy: UserId });
-    const whitelistCompareNumbers = whitelistCompare.numbers || 0;
-
+    const whitelistCompareNumbers = (whitelistCompare?.numbers ?? 0) || 0;
+    
+    
+    
     const matchingNumbers = cleanedPhoneNumber.filter((number) =>
-      whitelistCompareNumbers.includes(number)
-    );
+    whitelistCompareNumbers === 0 || whitelistCompareNumbers.includes(number)
+  );
     const matching = cleanedPhoneNumber.filter((number) =>
       matchingNumbers.includes(number)
     );
