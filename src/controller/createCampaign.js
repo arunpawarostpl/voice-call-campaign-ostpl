@@ -49,6 +49,8 @@ import {
   hasSufficientCredits,
   deductCreditsAndUpdateUser,
 } from "../service/credit_calculation_service.js";
+import transactionHistory from "../models/transaction_model.js";
+import moment from "moment";
 ffmpeg.setFfprobePath(ffprobeStatic.path);
 
 async function createObdCampaigning(req, res) {
@@ -64,6 +66,7 @@ async function createObdCampaigning(req, res) {
     const { CampaigName, description } = req.body;
     const csvBuffer = numberBuffer.buffer;
     const csvString = csvBuffer.toString("utf-8");
+ 
     const audioBuffer = audio.buffer;
     const phoneNumbers = csvString
       .split("\n")
@@ -107,7 +110,21 @@ async function createObdCampaigning(req, res) {
                if(!(userInfo.role === "admin")){
                  if(userInfo.credits >= creditsNeeded){
                    const updatedCredits = userInfo.credits - totalCredit;
-                 const up=  await user.updateOne({_id: UserId }, { $set: { credits: updatedCredits } });
+                  await user.updateOne({_id: UserId }, { $set: { credits: updatedCredits } });
+                  const deductCredit= `-${totalCredit}`
+                  const currentDate = new Date();
+                  const transaction=  await transactionHistory.create({
+                    creditAction:deductCredit,
+                    remarks:"Campaign",
+                    date:currentDate,
+                    time:moment(currentDate).format('h.mm A'),
+                    addedBy:"-",
+                    balance:updatedCredits,
+                    UserId:UserId
+                  })
+                  console.log("@@@@@@@");
+
+                  console.log("trnacsaction",transaction);
                 }else{
                   console.error("error")
                 }}
@@ -151,9 +168,6 @@ async function createObdCampaigning(req, res) {
     const userCuttingPercentage = getCutting.cutting_percentage;
     const whitelistCompare = await whiteList.findOne({ createdBy: UserId });
     const whitelistCompareNumbers = (whitelistCompare?.numbers ?? 0) || 0;
-    
-    
-    
     const matchingNumbers = cleanedPhoneNumber.filter((number) =>
     whitelistCompareNumbers === 0 || whitelistCompareNumbers.includes(number)
   );
