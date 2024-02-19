@@ -7,6 +7,9 @@ import {
 } from '../controller/userController.js'
 import user from '../models/userModel.js'
 import obdCampaignModel from '../models/obdCampaign.js'
+import transactionHistory from '../models/transaction_model.js'
+import moment from "moment";
+
 
 
 //render user
@@ -119,9 +122,25 @@ router.put("/update_credits", async (req, res) => {
       }
       requester.credits -= credits;
       userToUpdate.credits += credits;
+
+
     }
 
+ 
+
     await Promise.all([requester.save(), userToUpdate.save()]);
+    const currentDate = new Date();
+    const updatedCredit=`+${credits}`
+    const updtaeTransaction= await transactionHistory.create({
+      creditAction:updatedCredit,
+                    remarks:"Add Credit",
+                    date:currentDate,
+                    time:moment(currentDate).format('h.mm A'),
+                    addedBy: requester.role,
+                    balance:userToUpdate.credits,
+                    UserId:userId
+    })
+    console.log("updated",updtaeTransaction);
     res.json({ message: 'Credits updated successfully' });
   } catch (error) {
     console.error(error);
@@ -157,6 +176,19 @@ router.put("/reverse_credit_transfer", async (req, res) => {
 
       requester.credits += credits;
       await Promise.all([requester.save(), userToUpdate.save()]);
+    const currentDate = new Date();
+
+      const updatedCredit=`-${credits}`
+      const updtaeTransaction= await transactionHistory.create({
+        creditAction:updatedCredit,
+                      remarks:"Deduct Credit",
+                      date:currentDate,
+                      time:moment(currentDate).format('h.mm A'),
+                      addedBy: requester.role,
+                      balance:userToUpdate.credits,
+                      UserId:UserId
+      })
+      console.log("updated",updtaeTransaction);
       res.json({ message: 'Credit transfer reversed successfully' });
     } else {
       return res.status(403).json({ error: 'Unauthorized. You do not have permission to reverse credit transfers.' });
@@ -183,6 +215,25 @@ router.get("/get_users",async(req,res)=>{
     res.status(500).json({ message: 'Internal Server Error' });
   }
 })
+
+router.get("/user-transactions",async(req,res)=>{
+  try {
+    const token = req.headers.authorization
+    const {  UserId } = verifyToken(token)
+    // const userId = req.query.userId;  
+    const userTransaction = await transactionHistory.find( {UserId:UserId})
+    if (!userTransaction) {
+      return res.status(404).json({ message: 'User Campaign not found' });
+    }
+    console.log("Transaction",userTransaction);
+    res.json(userTransaction);
+  } catch (error) {
+    console.error('Error fetching campaigns:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+})
+
+
 
 
 router.put("/update_cutting", async (req, res) => {
@@ -217,17 +268,66 @@ router.put("/update_cutting", async (req, res) => {
 
 
 
-router.get('/users/:id', async (req, res) => {
+router.get('/users', async (req, res) => {
   try {
-    const user = await user.findById(req.params.id)
-    if (!user) {
+    const { userId } = req.query;
+    const getUser = await user.findById({_id:userId})
+    if (!getUser) {
       return res.status(404).json({ message: 'User not found' })
     }
-    res.json(user)
+    res.json(getUser)
   } catch (error) {
     res.status(500).json({ message: error.message })
   }
 })
+
+
+router.get('/transactions', async (req, res) => {
+  try {
+    const { userId } = req.query;
+    console.log("userID",userId);
+    const getTransactions = await transactionHistory.find({UserId:userId})
+    if (getTransactions==='') {
+      return res.status(200).json({ message: 'Transaction not found' })
+    }
+    console.log("logs",getTransactions);
+    res.json(getTransactions)
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+})
+
+router.put('/update-users', async (req, res) => {
+
+  const { userId } = req.query;
+  const { email, mobileNumber, cutting, city, state, password } = req.body;
+  
+  try {
+    // Find the user by ID
+    const updateUser = await user.findById({_id:userId});
+    
+    if (!updateUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    // Update the user properties
+    if (email) updateUser.email = email;
+    if (mobileNumber) updateUser.mobileNumber = mobileNumber;
+    if (cutting) updateUser.cutting_percentage = cutting;
+    if (city) updateUser.city = city;
+    if (state) updateUser.state = state;
+    if (password) updateUser.password = password;
+    
+    // Save the updated user
+    console.log("@@@@@@",updateUser);
+    await updateUser.save();
+    
+    res.json({ message: 'User updated successfully', updateUser });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 
 router.get('/user-campaigns', async (req, res) => {
   try {
@@ -242,5 +342,7 @@ router.get('/user-campaigns', async (req, res) => {
     res.status(500).json({ message: error.message })
   }
 })
+
+
 
 export default router
