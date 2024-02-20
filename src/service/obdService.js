@@ -51,8 +51,6 @@ async function createOBDCampaign(authToken, campaignData,campaign_ID) {
    const campaign_data = await obdCampaignModel.findById(campaign_ID);
    campaign_data.campaign_ref_Id = campaignRefId;
    await campaign_data.save();
-
-
     const savedDataReport = await campaignReport.create({ campaignRefId });
     console.log("Saved the campaignRefernse Id", savedDataReport);
     
@@ -180,7 +178,6 @@ async function startOBD(authtoken, obd_campaignId) {
         status: obdStatus,
       },headers:headers
     }).then(response => {
-      console.log(response.data);
     })
     .catch(error => {
       console.error(error);
