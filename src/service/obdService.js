@@ -84,10 +84,10 @@ async function uploadOBDNumber(authtoken, obdNumberData) {
     } catch (error) {
       console.error("Error creating XLSX file:", error);
     }
-    console.log("obddata=======>", obdNumberData);
+console.log("obddata=======>", obdNumberData);
     const obdSenderId = obdNumberData.campaign_ID;
     const obdDniNumber = obdNumberData.dni;
-    console.log("data", obdSenderId, obdDniNumber);
+console.log("data", obdSenderId, obdDniNumber);
     console.log("Enter in Number api ");
 
 
@@ -122,7 +122,7 @@ async function uploadOBDNumber(authtoken, obdNumberData) {
 
 async function uploadObdMedia(authtoken, campaignId, obd_campaignId) {
   try {
-    console.log("campaignID , obd_campaignId",campaignId,obd_campaignId);
+
     const campaign = await obdCampaignModel.findById(campaignId);
     const audioBuffer = campaign.audio.data;
     const outputFilePath = "obdUploads/audio.wav";  
