@@ -78,6 +78,7 @@ async function createObdCampaigning(req, res) {
     if (!numberFile && manualNumbers) {
       throw new Error("No Manual or number file uploaded");
     }
+    console.log("@@@@@@@@@");
 
     const cleanedPhoneNumber = phoneNumbers.map((number) =>
       number.replace(/ /g, "")
@@ -94,8 +95,7 @@ async function createObdCampaigning(req, res) {
 
     const audioMetadata = await getDuration(outputFilePath)
       .then((duration) => {
-        fs.unlinkSync(outputFilePath);
-        console.log("duration",duration);
+        fs.unlinkSync(outputFilePath)
         return duration;
       })
       .catch((error) => {
@@ -122,9 +122,7 @@ async function createObdCampaigning(req, res) {
                     balance:updatedCredits,
                     UserId:UserId
                   })
-                  console.log("@@@@@@@");
 
-                  console.log("trnacsaction",transaction);
                 }else{
                   console.error("error")
                 }}
@@ -183,7 +181,6 @@ async function createObdCampaigning(req, res) {
 
     const filteredNumber = remainingNumbers.slice(cuttingCount);
     const finalSubmissionNumber = matching.concat(filteredNumber);
-
     const username = process.env.OBD_USERNAME;
     const password = process.env.OBD_PASSWORD;
     const authtoken = await obdLogin(username, password);
@@ -220,7 +217,6 @@ async function createObdCampaigning(req, res) {
     const createCampaign = await createOBDCampaign(authtoken, campaignData,campaign_ID);
 
     const obd_campaignId = createCampaign;
-    console.log("Obd_campaign Id", obd_campaignId);
     const obdNumberData = {
       [OBD_CAMPAIGN_ID]: obd_campaignId,
       [OBD_DNI]: "9828011578",
