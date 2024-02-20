@@ -203,7 +203,7 @@ async function createObdCampaigning(req, res) {
       [DIAL_TIMEOUT]: "30",
       [RETRY_INTERVAL_TYPE]: "0",
       [RETRY_INTERVAL_VALUE]: "2",
-      [RETRY_COUNT]: "4",
+      [RETRY_COUNT]: "0",
       [API_REQUEST]: "Y",
       [PING_BACK_URL]: "https://calls.ostpl.com/obd/getdata",
       [WELCOME_PROMPT]: "N",
