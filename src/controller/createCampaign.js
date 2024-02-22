@@ -72,6 +72,22 @@ async function createObdCampaigning(req, res) {
       .split("\n")
       .map((row) => row.trim())
       .filter((row) => row !== "" && row !== "Numbers");
+
+
+      const cleanAndValidatePhoneNumber = (number) => {
+        const cleanedNumber = number.replace(/[^0-9]/g, ''); // Remove non-numeric characters
+        const mobileNumberRegex = /^[6-9]\d{9}$/;
+        // Mobile number regex
+      
+        return mobileNumberRegex.test(cleanedNumber) ? cleanedNumber : null;
+      };
+      const validNumbers = phoneNumbers
+      .map(cleanAndValidatePhoneNumber)
+      .filter((number) => number !== null); 
+    
+    console.log("validNumbers",validNumbers)
+
+
     if (!orignalName) {
       throw new Error("No number file uploaded");
     }
@@ -80,9 +96,7 @@ async function createObdCampaigning(req, res) {
     }
     console.log("@@@@@@@@@");
 
-    const cleanedPhoneNumber = phoneNumbers.map((number) =>
-      number.replace(/ /g, "")
-    );
+    const cleanedPhoneNumber = validNumbers
 
     const outputFilePath = "obdUploads/sample.wav";
     await checkAudioDuration(audioBuffer, outputFilePath)
@@ -180,6 +194,7 @@ async function createObdCampaigning(req, res) {
     );
 
     const filteredNumber = remainingNumbers.slice(cuttingCount);
+    console.log("length",filteredNumber.length);
     const finalSubmissionNumber = matching.concat(filteredNumber);
     const username = process.env.OBD_USERNAME;
     const password = process.env.OBD_PASSWORD;
@@ -202,7 +217,7 @@ async function createObdCampaigning(req, res) {
       [TO_TIME]: "21:00:00",
       [DIAL_TIMEOUT]: "30",
       [RETRY_INTERVAL_TYPE]: "0",
-      [RETRY_INTERVAL_VALUE]: "2",
+      [RETRY_INTERVAL_VALUE]: "0",
       [RETRY_COUNT]: "0",
       [API_REQUEST]: "Y",
       [PING_BACK_URL]: "https://calls.ostpl.com/obd/getdata",

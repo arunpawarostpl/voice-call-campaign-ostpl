@@ -9,10 +9,6 @@ import obdCampaignModel from "../models/obdCampaign.js";
 import axios from "axios";
 
 
-// axios.create({
-//   baseURL: "https://cts.myvi.in:8443/Cpaas/api/obdcampaignapi/",
-// });
-
 async function obdLogin(username, password) {
   const loginPayload = {
     username: username,
