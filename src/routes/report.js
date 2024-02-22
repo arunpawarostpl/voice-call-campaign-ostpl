@@ -24,6 +24,7 @@ router.get('/generate-csv', async (req, res) => {
 
     } catch (error) {
         console.error('Error handling CSV request:', error);
+        console.log("error",error);
         return res.status(500).json({ error: 'Internal Server Error' });
     }
 });
@@ -41,6 +42,8 @@ router.get('/user-generate-csv', async (req, res) => {
         }
 
     } catch (error) {
+
+
         console.error('Error handling CSV request:', error);
         return res.status(500).json({ error: 'Internal Server Error' });
     }

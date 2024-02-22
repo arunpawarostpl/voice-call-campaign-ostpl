@@ -1,26 +1,25 @@
-
-import { createObjectCsvWriter } from 'csv-writer';
-
 import campaignReport from '../models/report.js'; // Replace with your actual path
-import { format } from "fast-csv";
-import csv from "fast-csv"
-import fs from "fs"
 import obdCampaignModel from '../models/obdCampaign.js';
 
 async function generateCSV(campaignRefId) {
     try {
-
-        const dataFromDB = await fetchDataFromDB(campaignRefId);
+        const dataFromDB = await fetchComplteData(campaignRefId);
         if (dataFromDB.length === 0) {
             return({ error: 'No data found for the provided CAMPAIGN_REF_ID' });
           }
 return(dataFromDB)
-
   } 
        catch (error) {
         console.error('Error generating CSV:', error);
         return  { success: false, error: 'Internal Server Error' };
 }
+}
+
+const fetchComplteData= async(CAMPAIGN_REF_ID)=>{
+  const data= await campaignReport.find({campaignRefId: CAMPAIGN_REF_ID})
+
+  const transformedData = data.flatMap(doc => doc.hits.flatMap(hit => hit.responses));
+  return transformedData;
 }
 
 
@@ -46,10 +45,11 @@ const fetchDataFromDB = async (CAMPAIGN_REF_ID) => {
             latestResponse: 1,
           },
         },
-      ]);
+      ]).allowDiskUse(true);;
       
       // Extract the latest responses
-      const filteredResponses = dataFromDB.map(({ latestResponse }) => latestResponse);  
+      const filteredResponses = dataFromDB.map(({ latestResponse }) => latestResponse);
+      console.log("actaul data",filteredResponses);  
       return filteredResponses
   };
 
