@@ -24,3 +24,27 @@ export const OBD_FILE='file'
 export const OBD_CAMPAIGN_ID= 'campaign_ID'
 export const STATUS='status'
 
+export const CHERRY_USER_ID="userId"
+export const CHERRY_CAMAIGN_NAME="campaignName"
+export const CHERRY_TEMPLATE_ID="templateId"
+export const CHERRY_DTMF="dtmf"
+export const CHERRY_BASEID="baseId"
+export const CHERRY_WELCOMEPID="welcomePId"
+export const CHERRY_MENUPID="menuPId"
+export const CHERRY_NOINPUTPID="noInputPId"
+export const CHERRY_WRONGINPUTPID="wrongInputPId"
+export const CHERRY_THANKSPID="thanksPId"
+export const CHERRY_SCHEDULETIME="scheduleTime"
+export const CHERRY_SMSSUCCESSAPI="smsSuccessApi"
+export const CHERRY_SMSFAILAPI="smsFailApi"
+export const CHERRY_SMSDTMFAPI="smsDtmfApi"
+export const CHERRY_CALLDURATIONSMS="callDurationSMS"
+export const CHERRY_RETRIES="retries"
+export const CHERRY_RETRYINTERVAL="retryInterval"
+export const CHERRY_AGENTROWS="agentRows"
+export const CHERRY_CHANNELS="channels"
+export const CHERRY_MENUWAITTIME="menuWaitTime"
+export const CHERRY_REPROMPT="rePrompt"
+
+
+

@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import moment from 'moment';
+import moment from "moment/moment.js";
 const transactionHistorySchema = new mongoose.Schema({
   creditAction:{type: String},
   remarks:{type: String},

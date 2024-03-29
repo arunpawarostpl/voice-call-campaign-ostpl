@@ -5,15 +5,8 @@ import path from 'path'
 import csvParser from 'csv-parser'
 
 async function handleCSVUpload (csvString) {
-  // if (!req.files['numberFile'][0]) {
-  //   throw new Error('No file uploaded')
-  // }
-
-  // console.log("@@@", req.files['numberFile'][0]);
   const numbers = []
-  // const requestedFile = req.files['numberFile'][0]
-  // console.log('@@@@@@', requestedFile)
-  // const NumberFilePath = requestedFile.path
+
   const stream = fs.createReadStream(csvString)
 
   return new Promise((resolve, reject) => {
@@ -113,4 +106,20 @@ const numbers = [1, 2, 3, 4, 5] // Replace with your data
 // const excelFilePath = generateExcel(numbers);
 // console.log(`Generated Excel file path: ${excelFilePath}`);
 
-export { handleCSVUpload, handleExcelUpload, deleteFile ,parseCSVBuffer}
+
+
+
+async function generateCSV(numbers) {
+  try {
+      // Convert the array of numbers into a CSV string
+      const csvData = numbers.join('\n');
+
+      // Write the CSV data to a file
+      fs.writeFileSync('obdUploads/data.csv', csvData);
+
+      console.log('CSV file generated successfully.');
+  } catch (error) {
+      console.error('Error generating CSV file:', error);
+  }
+}
+export { handleCSVUpload, handleExcelUpload, deleteFile ,parseCSVBuffer,generateCSV}

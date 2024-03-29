@@ -33,6 +33,7 @@ router.get('/generate-csv', async (req, res) => {
 router.get('/user-generate-csv', async (req, res) => {
     try {
         const { campaignRefId } = req.query;
+        console.log("@@@@@@@@@@@@");
         const result = await generateUserCSV(campaignRefId);
         if (result) { 
           return   res.status(200).send( result)

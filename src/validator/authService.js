@@ -14,13 +14,10 @@ function verifyToken (token) {
   try {
     
     const decodedToken = jwt.verify(token, secretKey)
-    console.log('enter in funtion')
     if (decodedToken) {
       const { _id, role } = decodedToken
       const UserRole = _id.role
       const UserId = _id._id
-
-      console.log(UserId, UserRole)
       return { UserRole, UserId }
     }
     return error
