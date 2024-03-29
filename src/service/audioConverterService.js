@@ -33,14 +33,22 @@ async function convertAudioToWAV(audioBuffer, outputFilePath) {
     fs.writeFileSync(tempMP3File, audioBuffer);
 
     const command = ffmpeg(tempMP3File)
+      // .toFormat('wav')
+      // .audioCodec('pcm_u8') // 8-bit audio codec
+      // .audioChannels(1) // Mono channel
+      // .audioFrequency(8000) // Sample rate
+      // .audioBitrate('64k') // Target bitrate
+      // .output(outputFilePath);
+
       .toFormat('wav')
-      .audioCodec('pcm_u8') // 8-bit audio codec
+      .audioCodec('pcm_s16le') // 8-bit audio codec
       .audioChannels(1) // Mono channel
       .audioFrequency(8000) // Sample rate
-      .audioBitrate('64k') // Target bitrate
+      // .audioBitrate('16k') // Target bitrate
       .output(outputFilePath);
 
-console.log("@@@@@@@@@@@@run the");
+
+
 command.on('end', () => {
   console.log('Conversion successful! WAV file generated:', outputFilePath);
   fs.unlinkSync(tempMP3File); // Remove the temporary MP3 file
@@ -120,7 +128,6 @@ async function checkAudioDuration(audioBuffer, outputFilePath) {
       .audioBitrate('64k') // Target bitrate
       .output(outputFilePath);
 
-console.log("@@@@@@@@@@@@run the");
 command.on('end', () => {
 
   // console.log('Conversion successful! WAV file generated:', outputFilePath);

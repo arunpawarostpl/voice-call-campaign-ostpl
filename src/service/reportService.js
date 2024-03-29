@@ -26,31 +26,47 @@ const fetchComplteData= async(CAMPAIGN_REF_ID)=>{
 
 const fetchDataFromDB = async (CAMPAIGN_REF_ID) => {
     // Fetch specific fields from MongoDB based on CAMPAIGN_REF_ID
-    const dataFromDB = await campaignReport.aggregate([
-        { $match: { campaignRefId: CAMPAIGN_REF_ID } },
-        { $unwind: '$hits' },
-        { $unwind: '$hits.responses' },
-        {
-          $sort: { 'hits.responses.A_PARTY_DIAL_START_TIME': -1 },
-        },
-        {
-          $group: {
-            _id: '$hits.responses.A_PARTY_NO',
-            latestResponse: { $first: '$hits.responses' },
-          },
-        },
-        {
-          $project: {
-            _id: 0,
-            latestResponse: 1,
-          },
-        },
-      ]).allowDiskUse(true);;
+    // const dataFromDB = await campaignReport.aggregate([
+    //     { $match: { campaignRefId: CAMPAIGN_REF_ID } },
+    //     { $unwind: '$hits' },
+    //     { $unwind: '$hits.responses' },
+    //     {
+    //       $sort: { 'hits.responses.A_PARTY_DIAL_START_TIME': -1 },
+    //     },
+    //     {
+    //       $group: {
+    //         _id: '$hits.responses.A_PARTY_NO',
+    //         latestResponse: { $first: '$hits.responses' },
+    //       },
+    //     },
+    //     {
+    //       $project: {
+    //         _id: 0,
+    //         latestResponse: 1,
+    //       },
+    //     },
+    //   ]).toArray();
       
-      // Extract the latest responses
-      const filteredResponses = dataFromDB.map(({ latestResponse }) => latestResponse);
-      console.log("actaul data",filteredResponses);  
-      return filteredResponses
+    //   // Extract the latest responses
+    //   const filteredResponses = dataFromDB.map(({ latestResponse }) => latestResponse);
+    //   return filteredResponses
+    const allData = await campaignReport.find({ campaignRefId: CAMPAIGN_REF_ID });
+
+// Flatten the data and extract all responses
+const allResponses = allData.flatMap(doc => doc.hits.flatMap(hit => hit.responses));
+
+// Group responses by A_PARTY_NO and keep track of the latest response for each A_PARTY_NO
+const latestResponsesMap = new Map();
+allResponses.forEach(response => {
+    const { A_PARTY_NO, A_PARTY_DIAL_START_TIME } = response;
+    if (!latestResponsesMap.has(A_PARTY_NO) || A_PARTY_DIAL_START_TIME > latestResponsesMap.get(A_PARTY_NO).A_PARTY_DIAL_START_TIME) {
+        latestResponsesMap.set(A_PARTY_NO, response);
+    }
+});
+
+// Extract the latest responses from the map
+const latestResponses = Array.from(latestResponsesMap.values());
+return latestResponses
   };
 
 
@@ -61,6 +77,7 @@ const fetchDataFromDB = async (CAMPAIGN_REF_ID) => {
         const dataFromDB = await fetchDataFromDB(campaignRefId);
         const camapaignNumber=await obdCampaignModel.findOne({campaign_ref_Id:campaignRefId})
         const UserNumbers= camapaignNumber.numbers
+        
         const missingNumbers = UserNumbers.filter(UserNumbers => !dataFromDB.some(record => record.A_PARTY_NO === UserNumbers));
         const usersNumberList = missingNumbers.map(UserNumbers => ({
             A_PARTY_NO: UserNumbers,
@@ -76,7 +93,7 @@ const fetchDataFromDB = async (CAMPAIGN_REF_ID) => {
           }
 
           shuffleArray(finalNumbers);
-shuffleArray(finalNumbers)
+console.log("final Number",finalNumbers);
         return (finalNumbers);
   } 
        catch (error) {

@@ -10,6 +10,7 @@ import reportRoute from "./src/routes/report.js"
 import path from "path"
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import dniRoute from "./src/routes/dniRoute.js"
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -33,6 +34,8 @@ app.use('/files',express.static(path.join(__dirname,'public/files')))
 app.use('/', userRoute)
 app.use('/obd', obdroute)
 app.use('/report',reportRoute)
+app.use('/dni',dniRoute)
+
 
 const PORT = process.env.PORT || 3000
 

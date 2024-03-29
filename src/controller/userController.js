@@ -40,7 +40,6 @@ const savedUser = new user({
   createdBy:UserId
 })
 const newUser = await savedUser.save()
-console.log(newUser);
 res.status(201).json(newUser)
 }else{
   const savedUser = new user({
@@ -56,7 +55,6 @@ res.status(201).json(newUser)
     createdBy:UserId,
   })
   const newUser = await savedUser.save()
-  console.log(newUser);
   res.status(201).json(newUser)
 }
   } catch (error) {

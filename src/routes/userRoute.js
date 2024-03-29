@@ -58,6 +58,16 @@ router.get('/userList', async (req, res) => {
   }
 })
 
+router.get('/reseller-user-list',async(req,res)=>{
+  try {
+    const resellerUser = await user.find({ role: { $ne: 'admin' } }) // Filter out users where role is not 'admin'
+    res.json(resellerUser)
+  } catch (error) {
+    console.error('Error fetching data:', error)
+    res.status(500).json({ error: 'Internal Server Error' })
+  }
+})
+
 router.get('/campaign-list', async (req, res) => {
   try {
     const token = req.headers.authorization
@@ -139,8 +149,7 @@ router.put("/update_credits", async (req, res) => {
                     addedBy: requester.role,
                     balance:userToUpdate.credits,
                     UserId:userId
-    })
-    console.log("updated",updtaeTransaction);
+    });
     res.json({ message: 'Credits updated successfully' });
   } catch (error) {
     console.error(error);
@@ -151,11 +160,11 @@ router.put("/update_credits", async (req, res) => {
 
 router.put("/reverse_credit_transfer", async (req, res) => {
   try {
-    console.log("Enter in a functiuon");
+  
     const token = req.headers.authorization;
     const { UserId, UserRole } = verifyToken(token);
     const { userId, credits } = req.body;
-    console.log("role",UserRole);
+   
 
     if (!userId || !credits) {
       return res.status(400).json({ error: 'userId and credits are required in the request body' });
@@ -191,7 +200,7 @@ router.put("/reverse_credit_transfer", async (req, res) => {
                       balance:userToUpdate.credits,
                       UserId:UserId
       })
-      console.log("updated",updtaeTransaction);
+      
       res.json({ message: 'Credit transfer reversed successfully' });
     } else {
       return res.status(403).json({ error: 'Unauthorized. You do not have permission to reverse credit transfers.' });
@@ -247,7 +256,7 @@ router.get("/user-transactions",async(req,res)=>{
     if (!userTransaction) {
       return res.status(404).json({ message: 'User Campaign not found' });
     }
-    console.log("Transaction",userTransaction);
+
     res.json(userTransaction);
   } catch (error) {
     console.error('Error fetching campaigns:', error);
@@ -307,12 +316,11 @@ router.get('/users', async (req, res) => {
 router.get('/transactions', async (req, res) => {
   try {
     const { userId } = req.query;
-    console.log("userID",userId);
+   
     const getTransactions = await transactionHistory.find({UserId:userId})
     if (getTransactions==='') {
       return res.status(200).json({ message: 'Transaction not found' })
     }
-    console.log("logs",getTransactions);
     res.json(getTransactions)
   } catch (error) {
     res.status(500).json({ message: error.message })
@@ -341,7 +349,6 @@ router.put('/update-users', async (req, res) => {
     if (password) updateUser.password = password;
     
     // Save the updated user
-    console.log("@@@@@@",updateUser);
     await updateUser.save();
     
     res.json({ message: 'User updated successfully', updateUser });

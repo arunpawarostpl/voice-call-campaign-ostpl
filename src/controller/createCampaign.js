@@ -10,6 +10,8 @@ import {
   uploadOBDNumber,
   uploadObdMedia,
 } from "../service/obdService.js";
+
+import { composeCampaign,cherryLogin,uploadVoice,uploadBaseload } from "../service/msgcherryService.js";
 import {
   OBD_CAMPAIGN_NAME,
   OBD_CAMPAIGN_DESCRIPTION,
@@ -34,6 +36,21 @@ import {
   OBD_FILE,
   OBD_CAMPAIGN_ID,
   STATUS,
+  CHERRY_USER_ID,
+  CHERRY_CAMAIGN_NAME,CHERRY_TEMPLATE_ID,CHERRY_DTMF,CHERRY_BASEID,CHERRY_WELCOMEPID,CHERRY_MENUPID,CHERRY_NOINPUTPID
+  ,CHERRY_WRONGINPUTPID,
+  CHERRY_THANKSPID,
+  CHERRY_SCHEDULETIME,
+  CHERRY_SMSSUCCESSAPI,
+  CHERRY_SMSFAILAPI,
+  CHERRY_SMSDTMFAPI,
+  CHERRY_CALLDURATIONSMS,
+  CHERRY_RETRIES,
+  CHERRY_RETRYINTERVAL,
+  CHERRY_AGENTROWS,
+  CHERRY_CHANNELS,
+  CHERRY_MENUWAITTIME,
+  CHERRY_REPROMPT
 } from "../utils/utils.js";
 import user from "../models/userModel.js";
 import {
@@ -51,6 +68,8 @@ import {
 } from "../service/credit_calculation_service.js";
 import transactionHistory from "../models/transaction_model.js";
 import moment from "moment";
+import CallingNumber from "../models/dniModel.js";
+import { resolveSrv } from "dns/promises";
 ffmpeg.setFfprobePath(ffprobeStatic.path);
 
 async function createObdCampaigning(req, res) {
@@ -94,7 +113,7 @@ async function createObdCampaigning(req, res) {
     if (!numberFile && manualNumbers) {
       throw new Error("No Manual or number file uploaded");
     }
-    console.log("@@@@@@@@@");
+   
 
     const cleanedPhoneNumber = validNumbers
 
@@ -181,8 +200,7 @@ async function createObdCampaigning(req, res) {
     const whitelistCompare = await whiteList.findOne({ createdBy: UserId });
     const whitelistCompareNumbers = (whitelistCompare?.numbers ?? 0) || 0;
     const matchingNumbers = cleanedPhoneNumber.filter((number) =>
-    whitelistCompareNumbers === 0 || whitelistCompareNumbers.includes(number)
-  );
+    whitelistCompareNumbers === 0 || whitelistCompareNumbers.includes(number));
     const matching = cleanedPhoneNumber.filter((number) =>
       matchingNumbers.includes(number)
     );
@@ -193,62 +211,140 @@ async function createObdCampaigning(req, res) {
       (userCuttingPercentage / 100) * remainingNumbers.length
     );
 
+
     const filteredNumber = remainingNumbers.slice(cuttingCount);
-    console.log("length",filteredNumber.length);
     const finalSubmissionNumber = matching.concat(filteredNumber);
-    const username = process.env.OBD_USERNAME;
-    const password = process.env.OBD_PASSWORD;
-    const authtoken = await obdLogin(username, password);
+    console.log("length",finalSubmissionNumber);
     const campaign_data = await obdCampaignModel.findById(campaign_ID);
     const obd_campaign_date = new Date(campaign_data.createdAt);
     const YEAR = obd_campaign_date.getFullYear();
     const MONTH = String(obd_campaign_date.getMonth() + 1).padStart(2, "0");
     const DAY = String(obd_campaign_date.getDate()).padStart(2, "0");
 
-    const formatedDate = `${YEAR}-${MONTH}-${DAY}`;
-    const campaignData = {
-      [OBD_CAMPAIGN_NAME]: campaign_data._id,
-      [OBD_CAMPAIGN_DESCRIPTION]: campaign_data.description,
-      [OBD_CAMPAIGN_TYPE]: "3",
-      [OBD_DNI]: "9828011578",
-      [FROM_DATE]: formatedDate,
-      [TO_DATE]: formatedDate,
-      [FROM_TIME]: "09:00:00",
-      [TO_TIME]: "21:00:00",
-      [DIAL_TIMEOUT]: "30",
-      [RETRY_INTERVAL_TYPE]: "0",
-      [RETRY_INTERVAL_VALUE]: "0",
-      [RETRY_COUNT]: "0",
-      [API_REQUEST]: "Y",
-      [PING_BACK_URL]: "https://calls.ostpl.com/obd/getdata",
-      [WELCOME_PROMPT]: "N",
-      [DTMF_REQUEST]: "N",
-      [DTMF_LENGTH]: "N",
-      [DTMF_RETRY]: "2",
-      [RETRY_LIMIT_EXCEEDED_PROMPT]: "N",
-      [THANKS_PROMPT]: "N",
-    };
+    const handleCherryCampaignCreation = async () => {
+      const username= process.env.CHERRY_USERNAME
+const password=process.env.CHERRY_PASSWORD
+const loginData= await cherryLogin(username,password)
+const userID= loginData.userid
+const token=loginData.token
+const promtC="welcome"
+const audioFileName=CampaigName
+const composeVoice= await uploadVoice(userID,promtC,audioFileName,token)
+const pId= composeVoice.promptId
+const baseName= CampaigName
 
-    const createCampaign = await createOBDCampaign(authtoken, campaignData,campaign_ID);
+const composeBaseLoad= await uploadBaseload(userID,baseName,token,finalSubmissionNumber)
+const baseID=composeBaseLoad.baseId
 
-    const obd_campaignId = createCampaign;
-    const obdNumberData = {
-      [OBD_CAMPAIGN_ID]: obd_campaignId,
-      [OBD_DNI]: "9828011578",
-      numberFile: finalSubmissionNumber,
-    };
-    console.log("Obd campiagn created successfully");
-
-    await uploadObdMedia(authtoken, campaign_ID, obd_campaignId);
-    console.log("voice file uploaded");
-
-    await uploadOBDNumber(authtoken, obdNumberData);
-    console.log("Number file uploaded");
-    await startOBD(authtoken, obd_campaignId);
-    console.log("campiagn start sucessfully");
-    return res.status(200).json({ message: "Campaign created successfully" });
-  } catch (error) {
-
-  }
+const composeCampaignBaseLoad={
+  [CHERRY_USER_ID]:userID,
+  [CHERRY_CAMAIGN_NAME]:baseName,
+  [CHERRY_TEMPLATE_ID]:"0",
+  [CHERRY_DTMF]:"",
+  [CHERRY_BASEID]:baseID,
+  [CHERRY_WELCOMEPID]:pId,
+  [CHERRY_MENUPID]:"",
+  [CHERRY_NOINPUTPID]:"",
+  [CHERRY_WRONGINPUTPID]:"",
+  [CHERRY_THANKSPID]:"",
+  [CHERRY_SCHEDULETIME]:`${YEAR}-${MONTH}-${DAY} 09:00:00`,
+  [CHERRY_SMSSUCCESSAPI]:"",
+  [CHERRY_SMSFAILAPI]:"",
+  [CHERRY_SMSDTMFAPI]:"",
+  [CHERRY_CALLDURATIONSMS]:"20",
+  [CHERRY_RETRIES]:"0",
+  [CHERRY_RETRYINTERVAL]:"0",
+  [CHERRY_AGENTROWS]:"",
+  [CHERRY_CHANNELS]:"20",
+  [CHERRY_MENUWAITTIME]:"",
+  [CHERRY_REPROMPT]:"0"
 }
+
+
+const compose_campaign_baseload = await composeCampaign(composeCampaignBaseLoad, token);
+
+if (compose_campaign_baseload.status === 200) {
+  return res.status(200).json({ message: "Campaign created successfully" });
+} else {
+  return res.status(500).json({ message: "Failed to create campaign" });
+}  };
+
+    const handleOBDCampaignCreation = async () => {
+      const username = process.env.OBD_USERNAME;
+      const password = process.env.OBD_PASSWORD;
+      const authtoken = await obdLogin(username, password);
+      
+      const suffelNumbers = await CallingNumber.find();
+      const dniNumbers = suffelNumbers.map(doc => doc.number);
+      console.log("DNI NUmber List",dniNumbers.length);
+      // Randomly select a number from the shuffled numbers
+      const randomIndex = Math.floor(Math.random() * dniNumbers.length);
+      console.log("randomIndex  List",randomIndex);
+     const  cID= campaign_data._id.toString()
+      const dniSendNumber = dniNumbers[randomIndex];  
+      console.log("DNI",dniSendNumber);
+          const formatedDate = `${YEAR}-${MONTH}-${DAY}`;
+          const campaignData = {
+            [OBD_CAMPAIGN_NAME]: cID,
+            [OBD_CAMPAIGN_DESCRIPTION]: campaign_data.description,
+            [OBD_CAMPAIGN_TYPE]: "3",
+            [OBD_DNI]: `${dniSendNumber}`,
+            [FROM_DATE]: formatedDate, 
+            [TO_DATE]: formatedDate,
+            [FROM_TIME]: "09:00:00",
+            [TO_TIME]: "21:00:00",
+            [DIAL_TIMEOUT]: "30",
+            [RETRY_INTERVAL_TYPE]: "0",
+            [RETRY_INTERVAL_VALUE]: "0",
+            [RETRY_COUNT]: "0",
+            [API_REQUEST]: "Y",
+            [PING_BACK_URL]: "https://calls.ostpl.com/obd/getdata",
+            [WELCOME_PROMPT]: "N",
+            [DTMF_REQUEST]: "N",
+            [DTMF_LENGTH]: "N",
+            [DTMF_RETRY]: "2",
+            [RETRY_LIMIT_EXCEEDED_PROMPT]: "N",
+            [THANKS_PROMPT]: "N",
+          };
+      
+          const createCampaign = await createOBDCampaign(authtoken, campaignData,campaign_ID);
+      console.log("Campiagn payload",campaignData);
+          const obd_campaignId = createCampaign;
+          const obdNumberData = {
+            [OBD_CAMPAIGN_ID]: obd_campaignId,
+            [OBD_DNI]: dniSendNumber,
+            numberFile: finalSubmissionNumber,
+          };
+          console.log("Obd campiagn created successfully");
+      
+          await uploadObdMedia(authtoken, campaign_ID, obd_campaignId);
+          console.log("voice file uploaded");
+      
+          await uploadOBDNumber(authtoken, obdNumberData);
+          console.log("Number file uploaded");
+          await startOBD(authtoken, obd_campaignId);
+          console.log("campiagn start sucessfully");
+          return res.status(200).json({ message: "Campaign created successfully" });
+    };
+
+    let response;
+    if (cleanedPhoneNumber.length < 1) {
+      response = await handleCherryCampaignCreation();
+    } else {
+      response = await handleOBDCampaignCreation();
+    }
+
+    // Send response to the client based on the response received
+    // if (response.status === 200) {
+    //   return res.status(200).json({ message: "Campaign created successfully" });
+    // } else {
+    //   return res.status(500).json({ message: "Failed to create campaign" });
+    // }
+    } catch (error) {
+      console.error("Error while composing campaign", error);
+      return res.status(500).json({ message: "Error while composing campaign", error: error.message });
+    }
+}
+
+
 export { createObdCampaigning };
