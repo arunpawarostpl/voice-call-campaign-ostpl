@@ -7,6 +7,7 @@ import path from "path";
 import axios from "axios";
 import user from "../models/userModel.js";
 import campaignReport from "../models/report.js";
+import { verifyToken } from "../validator/authService.js";
 const upload = multer({ storage: multer.memoryStorage() });
 const cpUpload = upload.fields([
   { name: "audioFile", maxCount: 1 },
@@ -55,6 +56,60 @@ router.get("/getlist", async (req, res) => {
 //     res.status(500).json({ error: "Internal Server Error" });
 //   }
 // });
+
+
+router.get('/details',async(req,res)=>{
+  try {
+    // Get total user count where role is 'reseller'
+    const resellerCount = await user.countDocuments({ role: 'reseller' });
+
+    // Get total campaign count
+    const campaignCount = await obdCampaignModel.countDocuments();
+
+    // Get total user count where role is 'user'
+    const userCount = await user.countDocuments({});
+    // Send response
+    res.json({
+      resellerCount,
+      campaignCount,
+      userCount,
+    });
+  } catch (error) {
+    console.error('Error fetching stats:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+})
+
+router.get('/reseller-details',async(req,res)=>{
+  try {
+
+
+    const token = req.headers.authorization
+    const { UserRole, UserId } = verifyToken(token)
+    if(UserRole=='reseller'){
+      const reselleruserCount = await user.countDocuments({createdBy:UserId});
+      const resellercampaignCount = await obdCampaignModel.countDocuments({_id:UserId});
+      return  res.json({
+        reselleruserCount,
+        resellercampaignCount
+      });
+    }else if(UserRole=="user"){
+      const userCampaignCount= await obdCampaignModel.countDocuments({createdBy:UserId})
+      return res.json({userCampaignCount})
+    }
+    
+   
+
+
+
+
+  } catch (error) {
+    console.error('Error fetching stats:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  
+  }
+})
+
 
 router.post('/getdata', async (req, res) => {
   try {

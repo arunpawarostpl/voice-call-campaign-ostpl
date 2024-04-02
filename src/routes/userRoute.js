@@ -60,7 +60,9 @@ router.get('/userList', async (req, res) => {
 
 router.get('/reseller-user-list',async(req,res)=>{
   try {
-    const resellerUser = await user.find({ role: { $ne: 'admin' } }) // Filter out users where role is not 'admin'
+    const token = req.headers.authorization
+    const { UserRole, UserId } = verifyToken(token)
+    const resellerUser = await user.find({ role: { $ne: 'admin' }, createdBy: UserId }) // Filter out users where role is not 'admin'
     res.json(resellerUser)
   } catch (error) {
     console.error('Error fetching data:', error)
