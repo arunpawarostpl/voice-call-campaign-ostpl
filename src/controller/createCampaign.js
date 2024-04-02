@@ -266,11 +266,11 @@ const composeCampaignBaseLoad={
 
 const compose_campaign_baseload = await composeCampaign(composeCampaignBaseLoad, token);
 
-// if (compose_campaign_baseload.status === 200) {
-//   return res.status(200).json({ message: "Campaign created successfully" });
-// } else {
-//   return res.status(500).json({ message: "Failed to create campaign" });
-// } 
+if (compose_campaign_baseload.status === 200) {
+  return res.status(200).json({ message: "Campaign created successfully" });
+} else {
+  return res.status(500).json({ message: "Failed to create campaign" });
+} 
  };
 
     const handleOBDCampaignCreation = async () => {
@@ -328,7 +328,7 @@ const compose_campaign_baseload = await composeCampaign(composeCampaignBaseLoad,
           console.log("Number file uploaded");
           await startOBD(authtoken, obd_campaignId);
           console.log("campiagn start sucessfully");
-          // return res.status(200).json({ message: "Campaign created successfully" });
+          return res.status(200).json({ message: "Campaign created successfully" });
     };
 
     let response;
