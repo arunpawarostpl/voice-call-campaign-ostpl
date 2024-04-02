@@ -140,9 +140,12 @@ async function createObdCampaigning(req, res) {
                const totalCredit=senderNumber*creditsNeeded
                const userInfo = await user.findOne({ _id:UserId });
                
-               if(!(userInfo.role === "admin")){
-                 if(userInfo.credits >= creditsNeeded){
+              //  if(!(userInfo.role === "admin")){
+                console.log("credfit",userInfo.credits,creditsNeeded);
+                 if(userInfo.credits > creditsNeeded){
+                  console.log("@@@@@");
                    const updatedCredits = userInfo.credits - totalCredit;
+                
                   await user.updateOne({_id: UserId }, { $set: { credits: updatedCredits } });
                   const deductCredit= `-${totalCredit}`
                   const currentDate = new Date();
@@ -157,8 +160,8 @@ async function createObdCampaigning(req, res) {
                   })
 
                 }else{
-                  console.error("error")
-                }}
+                  return  res.status(500).json({ message: 'You need to add more credit for this campaign' });
+                }
                 
                 
                 const saveObdCampaign = await obdCampaignModel.create({
@@ -263,11 +266,12 @@ const composeCampaignBaseLoad={
 
 const compose_campaign_baseload = await composeCampaign(composeCampaignBaseLoad, token);
 
-if (compose_campaign_baseload.status === 200) {
-  return res.status(200).json({ message: "Campaign created successfully" });
-} else {
-  return res.status(500).json({ message: "Failed to create campaign" });
-}  };
+// if (compose_campaign_baseload.status === 200) {
+//   return res.status(200).json({ message: "Campaign created successfully" });
+// } else {
+//   return res.status(500).json({ message: "Failed to create campaign" });
+// } 
+ };
 
     const handleOBDCampaignCreation = async () => {
       const username = process.env.OBD_USERNAME;
@@ -324,7 +328,7 @@ if (compose_campaign_baseload.status === 200) {
           console.log("Number file uploaded");
           await startOBD(authtoken, obd_campaignId);
           console.log("campiagn start sucessfully");
-          return res.status(200).json({ message: "Campaign created successfully" });
+          // return res.status(200).json({ message: "Campaign created successfully" });
     };
 
     let response;
