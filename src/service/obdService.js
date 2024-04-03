@@ -130,8 +130,7 @@ async function uploadObdMedia(authtoken, campaignId, obd_campaignId) {
         console.error("Error:", error);
       });
     const voice_File_Type = "c";
-    
-const headers = {
+    const headers = {
       'Content-Type': 'multipart/form-data',
       Authorization: `Bearer ${authtoken}`,
     };

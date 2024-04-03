@@ -10,7 +10,7 @@ async function cherryLogin(username,password){
       };
       try {
         const response = await axios.post(
-          process.env.CHERRY_LOGIN,
+          process.env.CHERRY_LOGIN, 
           loginPayload
         );
         console.log("data", response.data);
