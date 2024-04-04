@@ -89,20 +89,45 @@ router.get('/campaign-list', async (req, res) => {
 router.get('/reseller-list', async (req, res) => {
 
   try {
-    const token = req.headers.authorization
-    const { UserRole, UserId } = verifyToken(token)
-    const userCampaignsPromise = await obdCampaignModel.find({ createdBy: UserId }).select("-audio.data")
-    // const userData = await user.find({ createdBy: UserId }).select("-audio.data")
-    // const userArray = Array.isArray(userData) ? userData : [userData];
-    // const userIDs = userArray.map(user => user._id);
-    // const userCampaigns = await obdCampaignModel.find({ createdBy: { $in: userIDs } }).exec();
-    // const combinedResult = [...userCampaignsPromise, ...userCampaigns];
-    // if (!combinedResult) {
-    //   return res.status(404).json({ message: 'User Campaign not found' });
-    // }
-    console.log("result",userCampaignsPromise);
+    // const token = req.headers.authorization
+    // const { UserRole, UserId } = verifyToken(token)
+    // const userCampaignsPromise = await obdCampaignModel.find({ createdBy: UserId })
+    // // const userData = await user.find({ createdBy: UserId }).select("-audio.data")
+    // // const userArray = Array.isArray(userData) ? userData : [userData];
+    // // const userIDs = userArray.map(user => user._id);
+    // // const userCampaigns = await obdCampaignModel.find({ createdBy: { $in: userIDs } }).exec();
+    // // const combinedResult = [...userCampaignsPromise, ...userCampaigns];
+    // // if (!combinedResult) {
+    // //   return res.status(404).json({ message: 'User Campaign not found' });
+    // // }
+   
 
-    res.json(userCampaignsPromise);
+    // res.json(userCampaignsPromise);
+
+    const token = req.headers.authorization;
+const { UserRole, UserId } = verifyToken(token);
+const userCampaignsPromise = await obdCampaignModel.find({ createdBy: UserId });
+const obdCampaignsWithUsernames = userCampaignsPromise.map(campaign => ({
+  ...campaign.toObject(),
+ 
+}));
+// Array of numbers representing audio data
+// const audioDataArray = userCampaignsPromise.audio.data;
+
+// Convert the array of numbers to a buffer
+// const buffer = Buffer.from(audioDataArray);
+
+// // Convert the buffer to a base64 encoded string
+// const audioDataString = buffer.toString('base64');
+
+// // Map userCampaignsPromise to include the base64 encoded audio data
+// const userCampaignsWithAudio = userCampaignsPromise.map(campaign => ({
+//   ...campaign.toObject(),
+//   audioData: audioDataString, // Add the audioDataString to the campaign object
+// }));
+
+res.json(obdCampaignsWithUsernames);
+
   } catch (error) {
     console.error('Error fetching campaigns:', error);
     res.status(500).json({ message: 'Internal Server Error' });
@@ -367,10 +392,13 @@ router.get('/user-campaigns', async (req, res) => {
     const token = req.headers.authorization;
     const { UserId } = verifyToken(token)
     const getUserList = await obdCampaignModel.find({createdBy:UserId})
-    if (!getUserList) {
+    const userList = getUserList.map(campaign => ({
+      ...campaign.toObject()
+    }))
+    if (!userList) {
       return res.status(404).json({ message: 'User not found' })
     }
-   return res.send(getUserList)
+   return res.send(userList)
   } catch (error) {
     res.status(500).json({ message: error.message })
   }
