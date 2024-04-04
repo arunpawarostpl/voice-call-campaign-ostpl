@@ -93,7 +93,7 @@ console.log("campaignRefId",campaignRefId);
           }
 
           shuffleArray(finalNumbers);
-console.log("final Number",finalNumbers);
+// console.log("final Number",finalNumbers);
         return (finalNumbers);
   } 
        catch (error) {

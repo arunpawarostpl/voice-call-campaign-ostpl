@@ -26,13 +26,15 @@ router.post("/create-obd", cpUpload, async (req, res) => {
 
 router.get("/getlist", async (req, res) => {
   try {
-    const obdCampaigns = await obdCampaignModel.find({}).select("-audio.data");
+    
+    const obdCampaigns = await obdCampaignModel.find({})
     const createdByUsernames = await user.find({ _id: { $in: obdCampaigns.map(campaign => campaign.createdBy) } }, 'username');
     const obdCampaignsWithUsernames = obdCampaigns.map(campaign => ({
       ...campaign.toObject(),
       createdByUsername: createdByUsernames.find(user => user._id.toString() === campaign.createdBy)?.username,
     }));
- console.log("list",obdCampaignsWithUsernames);
+
+//  console.log("list",obdCampaignsWithUsernames);
 
     res.json(obdCampaignsWithUsernames);
   } catch (error) {
