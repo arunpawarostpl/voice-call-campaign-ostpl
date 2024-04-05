@@ -27,6 +27,10 @@ const obdcampaignchema = new mongoose.Schema(
     },
     campaign_ref_Id:{
       type:String
+    },
+    sendingNumber_length:{
+      type:Number,
+      default: 0
     }
   },
   { timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' } }

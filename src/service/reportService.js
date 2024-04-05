@@ -73,7 +73,7 @@ return latestResponses
 
   async function generateUserCSV(campaignRefId) {
     try {
-console.log("campaignRefId",campaignRefId);
+// console.log("campaignRefId",campaignRefId);
         const dataFromDB = await fetchDataFromDB(campaignRefId);
         const camapaignNumber=await obdCampaignModel.findOne({campaign_ref_Id:campaignRefId})
         const UserNumbers= camapaignNumber.numbers
@@ -102,4 +102,4 @@ console.log("campaignRefId",campaignRefId);
 }
 }
 
-export { generateCSV,generateUserCSV };
+export { generateCSV,generateUserCSV,fetchComplteData };
