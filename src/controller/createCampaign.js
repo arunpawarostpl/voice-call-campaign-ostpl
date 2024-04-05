@@ -218,6 +218,12 @@ async function createObdCampaigning(req, res) {
     const filteredNumber = remainingNumbers.slice(cuttingCount);
     const finalSubmissionNumber = matching.concat(filteredNumber);
     console.log("length",finalSubmissionNumber);
+
+    await obdCampaignModel.findByIdAndUpdate(
+      campaign_ID,
+      { sendingNumber_length: finalSubmissionNumber.length },
+      { new: true }
+    );
     const campaign_data = await obdCampaignModel.findById(campaign_ID);
     const obd_campaign_date = new Date(campaign_data.createdAt);
     const YEAR = obd_campaign_date.getFullYear();
