@@ -11,7 +11,7 @@ import path from "path"
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import dniRoute from "./src/routes/dniRoute.js"
-
+import mediaRoute from "./src/routes/mediaRoute.js"
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 dotenv.config();
@@ -35,6 +35,7 @@ app.use('/', userRoute)
 app.use('/obd', obdroute)
 app.use('/report',reportRoute)
 app.use('/dni',dniRoute)
+app.use('/upload', mediaRoute);
 
 
 const PORT = process.env.PORT || 3000
