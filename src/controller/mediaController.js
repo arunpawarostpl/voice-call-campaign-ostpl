@@ -2,16 +2,21 @@
 import WatsappMedia from "../models/bussinessMediaModel.js"
 import {uploadWhatsappMedia,sendMessage} from '../service/watsappMessageService.js'
 
-const uploadMedia = async (req, res) => {
-    const file = req.file; // Uploaded file details
-    const { type,numbers,template_name } = req.body;
+async function uploadMedia (req, res){
+    const file = req.file;
+    const orignalName = file.originalname;
+    const buffer = req.file.buffer;
+
+
+     // Uploaded file details
+    const { type,numbers,template_name,language } = req.body;
 
     console.log("numbers",numbers);
 
 
 
-    if (!['video', 'pdf', 'image'].includes(type)) {
-        return res.status(400).json({ message: 'Invalid media type. Allowed types: video, audio, pdf, image' });
+    if (!['video', 'document', 'image'].includes(type)) {
+        return res.status(400).json({ message: 'Invalid media type. Allowed types: video, document, image' });
     } 
     
     if (!numbers || typeof numbers !== 'string') {
@@ -38,32 +43,47 @@ const uploadMedia = async (req, res) => {
     console.log('Valid Mobile Numbers:', validNumbers);
 
     const token = req.headers.authorization.split(' ')[1]; // Extract token from Authorization header
-console.log(token);
+// console.log(token);
     try {
-        const facebookId = await uploadWhatsappMedia(file, type, token);
 
         // Create a new Media document
-        const media = new WatsappMedia({
-            type,
-            mediaId: facebookId,
-            numbers:validNumbers,
-            template_name // Use facebookId as the mediaId
-        });
+      
+              // Create a new WatsappMedia document with the video data
+              const media = new WatsappMedia({
+                type,
+                numbers: validNumbers,
+                template_name,
+                file: {
+                //   filename: orignalName,
+                  data: buffer,
+                },
+                language_code: language
+              });
+          
+              // Save the media document to MongoDB
+              await media.save();
+          
+              // Upload the WhatsApp media using the provided token and media data
+            const medaiSenderId=  await uploadWhatsappMedia(token, media);
+            console.log("id",medaiSenderId);
+            const mediaId = media._id
+            await WatsappMedia.findByIdAndUpdate(
+                { _id:mediaId  },
+                { mediaId: medaiSenderId },
+                { new: true } 
+              );
+              // Send WhatsApp message after media upload
+              const sendWhatsappMessage = await sendMessage(media, token);
+              console.log('WhatsApp message sent successfully:', sendWhatsappMessage);
+          
+              // Return success response
+              res.status(200).json({ message: 'Media uploaded and WhatsApp message sent successfully', media });
+            
+       
 
         // Save the media document to MongoDB
-        await media.save();
 
-        res.status(200).json({ message: 'Media uploaded successfully', media });
-        if (facebookId && media) {
-            try {
-                const sendWhatsappMessage = await sendMessage(media,token);
-                console.log('WhatsApp message sent successfully:', sendWhatsappMessage);
-            } catch (error) {
-                console.error('Failed to send WhatsApp message:', error);
-                // Handle error, e.g., return an error response
-                res.status(500).json({ message: 'Failed to send WhatsApp message', error });
-            }
-        }
+        
 
     } catch (error) {
         console.error('Error uploading media:', error);
@@ -72,4 +92,4 @@ console.log(token);
 };
 
 
-export default { uploadMedia };
+export  { uploadMedia };

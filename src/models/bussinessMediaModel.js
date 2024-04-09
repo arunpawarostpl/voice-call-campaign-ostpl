@@ -4,11 +4,10 @@ import mongoose from "mongoose";
 const mediaSchema = new mongoose.Schema({
     type: {
         type: String,
-        enum: ['video', 'pdf', 'image'] // Define allowed media types
+        enum: ['video', 'document', 'image'] // Define allowed media types
     },
     mediaId: {
-        type: String,
-        required: true
+        type: String
     },
     numbers: {
         type: [String], 
@@ -16,7 +15,14 @@ const mediaSchema = new mongoose.Schema({
     },
     template_name:{
         type:String
-    }
+    },
+    file: {
+        data: Buffer
+      },
+      language_code:{
+        type:String
+      }
+
 
 });
 
