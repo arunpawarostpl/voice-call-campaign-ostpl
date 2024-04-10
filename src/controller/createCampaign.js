@@ -76,23 +76,31 @@ async function createObdCampaigning(req, res) {
   try {
     const token = req.headers.authorization;
     const { UserRole, UserId } = verifyToken(token);
+  
     const audio = req.files["audioFile"][0];
-    const numberFile = req.files["numberFile"][0];
-    const manualNumbers = req.body.number;
+    // const numberFile = req.files["numberFile"][0]
+    const numberFile = req.files["numberFile"] && req.files["numberFile"][0] ? req.files["numberFile"][0] : 0;
+    const SendmanualNumbers = req.body.numbers;
     const orignalName = audio.originalname;
     const buffer = req.files["audioFile"][0].buffer;
-    const numberBuffer = req.files["numberFile"][0];
-    const { CampaigName, description } = req.body;
-    const csvBuffer = numberBuffer.buffer;
-    const csvString = csvBuffer.toString("utf-8");
- 
     const audioBuffer = audio.buffer;
-    const phoneNumbers = csvString
-      .split("\n")
-      .map((row) => row.trim())
-      .filter((row) => row !== "" && row !== "Numbers");
 
+    
+    let validNumbers
 
+    const numberBuffer = req.files["numberFile"] && req.files["numberFile"][0] ? req.files["numberFile"][0] : 0;
+    const { CampaigName, description } = req.body;
+    
+      const csvBuffer = numberBuffer.buffer;
+      const csvString = csvBuffer.toString("utf-8");
+
+      // const phoneNumbers = csvString
+      // .split("\n")
+      // .map((row) => row.trim())
+      // .filter((row) => row !== "" && row !== "Numbers");
+      // validNumbers = phoneNumbers
+      // .map(cleanAndValidatePhoneNumber)
+      // .filter((number) => number !== null); 
       const cleanAndValidatePhoneNumber = (number) => {
         const cleanedNumber = number.replace(/[^0-9]/g, ''); // Remove non-numeric characters
         const mobileNumberRegex = /^[6-9]\d{9}$/;
@@ -100,22 +108,63 @@ async function createObdCampaigning(req, res) {
       
         return mobileNumberRegex.test(cleanedNumber) ? cleanedNumber : null;
       };
-      const validNumbers = phoneNumbers
-      .map(cleanAndValidatePhoneNumber)
-      .filter((number) => number !== null); 
+      const phoneNumbers = (csvString?.split("\n") ?? [])
+    .map((row) => row.trim())
+    .filter((row) => row !== "" && row !== "Numbers");
+
+ validNumbers = (phoneNumbers ?? [])
+    .map(cleanAndValidatePhoneNumber)
+    .filter((number) => number !== null);
+    
+    console.log("SendmanualNumbers",validNumbers);
+
+    // if (!orignalName) {
+    //   throw new Error("No number file uploaded");
+    // }
+    // if (!numberFile && manualNumbers) {
+    //   throw new Error("No Manual or number file uploaded");
+    // }
+    
+
+   
+
+      
+       
+  const numberList = SendmanualNumbers.split('\n').map(num => num.trim());
+  const validSendNumbers = [];
+  const invalidNumbers = [];
+  numberList.forEach(num => {
+    // Validate each number (e.g., check if it's a valid 10-digit number)
+    if (/^\d{10}$/.test(num)) {
+      validSendNumbers.push(num);
+    } else {
+      invalidNumbers.push(num);
+    }
+  });
     
     console.log("validNumbers",validNumbers)
 
 
-    if (!orignalName) {
-      throw new Error("No number file uploaded");
-    }
-    if (!numberFile && manualNumbers) {
-      throw new Error("No Manual or number file uploaded");
-    }
-   
+   let cleanedPhoneNumber
+  //  if(numberBuffer){
 
-    const cleanedPhoneNumber = validNumbers
+  //    cleanedPhoneNumber = validNumbers
+  //  }
+  // validNumbers=manualNumbers
+  // .map(cleanAndValidatePhoneNumber)
+  // .filter((number) => number !== null);
+  const finalNumbersToSend = validNumbers && validNumbers.length > 0 ? validNumbers : validSendNumbers;
+console.log("validSendNumbers",finalNumbersToSend);
+  if (finalNumbersToSend === validSendNumbers) {
+    // Format cleanedPhoneNumber as "length [...]"
+    cleanedPhoneNumber =validSendNumbers;
+  } else {
+    // Assign cleanedPhoneNumber to validNumbers
+    cleanedPhoneNumber = validNumbers;
+  }
+
+
+  console.log("@@@@@@@@",cleanedPhoneNumber);
 
     const outputFilePath = "obdUploads/sample.wav";
     await checkAudioDuration(audioBuffer, outputFilePath)
