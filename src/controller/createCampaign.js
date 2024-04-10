@@ -91,16 +91,9 @@ async function createObdCampaigning(req, res) {
     const numberBuffer = req.files["numberFile"] && req.files["numberFile"][0] ? req.files["numberFile"][0] : 0;
     const { CampaigName, description } = req.body;
     
-      const csvBuffer = numberBuffer.buffer;
-      const csvString = csvBuffer.toString("utf-8");
+      const csvBuffer = numberBuffer?.buffer;
+      const csvString = csvBuffer?.toString("utf-8");
 
-      // const phoneNumbers = csvString
-      // .split("\n")
-      // .map((row) => row.trim())
-      // .filter((row) => row !== "" && row !== "Numbers");
-      // validNumbers = phoneNumbers
-      // .map(cleanAndValidatePhoneNumber)
-      // .filter((number) => number !== null); 
       const cleanAndValidatePhoneNumber = (number) => {
         const cleanedNumber = number.replace(/[^0-9]/g, ''); // Remove non-numeric characters
         const mobileNumberRegex = /^[6-9]\d{9}$/;
@@ -115,6 +108,15 @@ async function createObdCampaigning(req, res) {
  validNumbers = (phoneNumbers ?? [])
     .map(cleanAndValidatePhoneNumber)
     .filter((number) => number !== null);
+
+      // const phoneNumbers = csvString
+      // .split("\n")
+      // .map((row) => row.trim())
+      // .filter((row) => row !== "" && row !== "Numbers");
+      // validNumbers = phoneNumbers
+      // .map(cleanAndValidatePhoneNumber)
+      // .filter((number) => number !== null); 
+    
     
     console.log("SendmanualNumbers",validNumbers);
 
