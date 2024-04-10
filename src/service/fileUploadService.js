@@ -128,12 +128,9 @@ async function generateCSV(numbers) {
 
 async function saveVideoFromBuffer(buffer, filename) {
   try {
-    // Specify the output file path where the video will be saved
-    const outputPath = path.join('obdUploads', filename); // Assumes 'obdUploads' directory already exists
-
-    // Write the video buffer to the output file
-    await fs.writeFileSync(outputPath, buffer);
-
+   
+    const outputPath = path.join('obdUploads', filename); 
+     fs.writeFileSync(outputPath, buffer);
     console.log(`Video saved to: ${outputPath}`);
   } catch (error) {
     console.error('Error saving video:', error);

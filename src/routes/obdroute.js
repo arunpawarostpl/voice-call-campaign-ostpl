@@ -16,7 +16,7 @@ const cpUpload = upload.fields([
 
 router.post("/create-obd", cpUpload, async (req, res) => {
   try { 
-
+    console.log(req.body);
     await createObdCampaigning(req, res);
   } catch (error) {
     console.error("Route error:", error);
