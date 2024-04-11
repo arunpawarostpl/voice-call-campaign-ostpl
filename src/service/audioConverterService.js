@@ -116,6 +116,7 @@ async function getDuration(outputFilePath, decimalPlaces = 0) {
 
 
 async function checkAudioDuration(audioBuffer, outputFilePath) {
+  console.log("enter in audioi checker");
   return new Promise((resolve, reject) => {
     const tempMP3File = 'temp.mp3';
     fs.writeFileSync(tempMP3File, audioBuffer);
