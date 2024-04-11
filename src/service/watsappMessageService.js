@@ -40,7 +40,7 @@ import { saveVideoFromBuffer } from "./fileUploadService.js";
 // };  
 async function uploadWhatsappMedia(token, media) {
     try {
-    //   const videoBuffer = media.video.data;
+
       const mediaType = media.type;
       let mediaBuffer;
       let fileExtension;
