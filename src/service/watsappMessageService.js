@@ -139,7 +139,7 @@ async function uploadWhatsappMedia(token, media) {
 // };
 
 
-const sendMessage = async (media, token) => {
+const sendMessage = async (media, token,batchSize = 50) => {
     try {
       const mediaId = media._id;
       const findMedia = await WatsappMedia.findOne({ _id: mediaId });
@@ -147,57 +147,137 @@ const sendMessage = async (media, token) => {
         throw new Error('Media not found');
       }
   
-      const sendingMediaId = findMedia.mediaId;
-      const templateName = findMedia.template_name;
-      const numbers = findMedia.numbers;
-      const mediaType = findMedia.type;
-      const lan_code=findMedia.language_code
+      // const sendingMediaId = findMedia.mediaId;
+      // const templateName = findMedia.template_name;
+      // const numbers = findMedia.numbers;
+      // const mediaType = findMedia.type;
+      // const lan_code=findMedia.language_code
   
-      const payloadPromises = numbers.map(async (recipientNumber) => {
-        const payload = {
-          messaging_product: 'whatsapp',
-          recipient_type: 'individual',
-          to: `91${recipientNumber}`,
-          type: 'template',
-          template: {
-            name: templateName,
-            language: {
-              code: lan_code
-            },
-            components: [
-              {
-                type: 'header',
-                parameters: [
+      //   const payloadPromises = numbers.map(async (recipientNumber) => {
+      //     const payload = {
+      //       messaging_product: 'whatsapp',
+      //       recipient_type: 'individual',
+      //       to: `91${recipientNumber}`,
+      //       type: 'template',
+      //       template: {
+      //         name: templateName,
+      //         language: {
+      //           code: lan_code
+      //         },
+      //         components: [
+      //           {
+      //             type: 'header',
+      //             parameters: [
+      //               {
+      //                 type: mediaType,
+      //                 [mediaType]: {
+      //                   id: sendingMediaId
+      //                 }
+      //               }
+      //             ]
+      //           }
+      //         ]
+      //       }
+      //     };
+    
+      //     const headers = {
+      //       'Content-Type': 'application/json',
+      //       Authorization: `Bearer ${token}`
+      //     };
+      //     console.log(JSON.stringify(payload));
+    
+      //     const url = "https://graph.facebook.com/v19.0/280684491788195/messages";
+      //     const response = await axios.post(url, payload, { headers });
+      //     return `Message sent successfully to ${recipientNumber}: ${response.data}`;
+      //   });
+    
+      //   // Execute all payload promises concurrently using Promise.all
+      //   const results = await Promise.all(payloadPromises);
+      //   results.forEach((result) => console.log(result));
+      //   return results;
+      // } catch (error) {
+      //   console.error('Error sending messages:', error.message);
+      //   throw error;
+      // }
+
+      const { mediaId: sendingMediaId, template_name: templateName, numbers, type: mediaType, language_code: lan_code } = findMedia;
+
+      const numberBatches = [];
+      for (let i = 0; i < numbers.length; i += batchSize) {
+        numberBatches.push(numbers.slice(i, i + batchSize));
+      }
+  
+    
+      for (const batch of numberBatches) {
+        if (!Array.isArray(batch)) {
+          console.error('Invalid batch:', batch);
+          continue; // Skip this batch and proceed to the next one
+        }
+        const payloadPromises = batch.map(async (recipientNumber) => {
+          try {
+            const payload = {
+              messaging_product: 'whatsapp',
+              recipient_type: 'individual',
+              to: `91${recipientNumber}`,
+              type: 'template',
+              template: {
+                name: templateName,
+                language: {
+                  code: lan_code
+                },
+                components: [
                   {
-                    type: mediaType,
-                    [mediaType]: {
-                      id: sendingMediaId
-                    }
+                    type: 'header',
+                    parameters: [
+                      {
+                        type: mediaType,
+                        [mediaType]: {
+                          id: sendingMediaId
+                        }
+                      }
+                    ]
                   }
                 ]
               }
-            ]
+            };
+  
+            const headers = {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`
+            };
+  
+            console.log("payload",JSON.stringify(payload));
+            const url = "https://graph.facebook.com/v19.0/280684491788195/messages";
+            const response = await axios.post(url, payload, { headers });
+  
+           
+            const deliveryStatus = `Message sent successfully to ${recipientNumber}: ${response.status} ${response.statusText}`;
+            numberBatches.push(deliveryStatus);
+
+          return deliveryStatus;
+          } catch (error) {
+        
+            console.error(`Error sending message to ${recipientNumber}:`, error.message);
+            throw error; 
           }
-        };
+        });
   
-        const headers = {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        };
-        console.log(JSON.stringify(payload));
+        // Execute all payload promises for the current batch
+        const results = await Promise.all(payloadPromises);
   
-        const url = "https://graph.facebook.com/v19.0/208475342358734/messages";
-        const response = await axios.post(url, payload, { headers });
-        return `Message sent successfully to ${recipientNumber}: ${response.data}`;
-      });
+        // Log results for each message sent in the current batch
+        results.forEach((result) => console.log(result));
+      }
   
-      // Execute all payload promises concurrently using Promise.all
-      const results = await Promise.all(payloadPromises);
-      results.forEach((result) => console.log(result));
+      console.log('All messages sent successfully.');
+  
     } catch (error) {
-      console.error('Error sending messages:', error.message);
+      // Handle any general errors during message sending
+      console.error('Failed to send messages:', error.message);
+      throw error;
     }
-  };
+  
+    };
 
 
 
