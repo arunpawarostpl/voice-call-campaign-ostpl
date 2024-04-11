@@ -91,7 +91,7 @@ router.get('/checkStatus',async(req,res)=>{
         return res.status(404).json({ message: 'Campaign not found' });
       }
       const campNumberLength = findLength.sendingNumber_length;
-      console.log("num",campNumberLength);
+      // console.log("num",campNumberLength);
       const result = await fetchComplteData(campaignRefId);
       const resultLength = result.length;
       const status = campNumberLength === resultLength ? 'Completed' : 'Pending';
