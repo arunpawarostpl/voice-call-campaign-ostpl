@@ -12,7 +12,11 @@
         role: { type: String, enum: ['user', 'admin', 'reseller'], required: true },
         cutting_percentage:{type:Number,default:0},
         credits: { type: Number, default: 0 },
-        createdBy:{type:String,required:true}
+        createdBy:{type:String,required:true},
+        planType: [{
+            type: Number, 
+            required: true,
+          }],
     }, { timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' } });
 
 

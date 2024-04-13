@@ -1,5 +1,6 @@
 import campaignReport from '../models/report.js'; // Replace with your actual path
 import obdCampaignModel from '../models/obdCampaign.js';
+import transactionHistory from '../models/transaction_model.js';
 
 async function generateCSV(campaignRefId) {
     try {
@@ -77,12 +78,20 @@ return latestResponses
         const dataFromDB = await fetchDataFromDB(campaignRefId);
         const camapaignNumber=await obdCampaignModel.findOne({campaign_ref_Id:campaignRefId})
         const UserNumbers= camapaignNumber.numbers
+        const transactionCampaignId=camapaignNumber._id
+        // console.log("camapaignNumber",camapaignNumber);
+        const transaction= await transactionHistory.findOne({campaign_id:camapaignNumber._id})
+        const campaign_Name=camapaignNumber.obdcampaignname
+        // console.log("transaction",transaction)
+        
         
         const missingNumbers = UserNumbers.filter(UserNumbers => !dataFromDB.some(record => record.A_PARTY_NO === UserNumbers));
         const usersNumberList = missingNumbers.map(UserNumbers => ({
             A_PARTY_NO: UserNumbers,
             A_DIAL_STATUS: 'connected' 
           }));
+
+
 
           const  finalNumbers= dataFromDB.concat(usersNumberList)
           function shuffleArray(array) {
@@ -93,13 +102,79 @@ return latestResponses
           }
 
           shuffleArray(finalNumbers);
+          console.log("finalNumbers",finalNumbers);
 // console.log("final Number",finalNumbers);
-        return (finalNumbers);
+const sendingData = await enrichFinalNumbersWithTransactionDetails(campaignRefId,transactionCampaignId, finalNumbers)
+
+console.log("sendingData",sendingData);
+        return (sendingData);
   } 
        catch (error) {
         console.error('Error generating CSV:', error);
         return  { success: false, error: 'Internal Server Error' };
 }
+}
+
+
+
+
+
+async function enrichFinalNumbersWithTransactionDetails(campaignRefId,transactionCampaignId, finalNumbers) {
+  const enrichedFinalNumbers = [];
+
+  for (const numberItem of finalNumbers) {
+      // Use the provided CAMPAIGN_REF_ID to retrieve related transaction and campaign details
+      const campaignId = campaignRefId; // Assuming CAMPAIGN_REF_ID is used to identify the campaign
+
+      // Retrieve the transaction based on campaignId
+      const transaction = await transactionHistory.findOne({ campaign_id: transactionCampaignId });
+
+      console.log("transaction",transaction);
+      if (transaction) {
+          // Extract additional details from the transaction
+          const { creditAction, campaign_id } = transaction;
+
+          // Retrieve campaign details based on campaign_id from transaction
+          const campaign = await obdCampaignModel.findOne({ campaign_ref_Id: campaignId });
+      console.log("campaign",campaign);
+
+          if (campaign) {
+              const { obdcampaignname, createdAt } = campaign;
+
+              // Create an enriched number item with additional details
+              const enrichedNumberItem = {
+                  ...numberItem,
+                  creditAction: creditAction,
+                  obdcampaignname: obdcampaignname,
+                  createdAt:    formatDateString(createdAt)
+                  
+              };
+
+              // Push the enriched number item to the result array
+              enrichedFinalNumbers.push(enrichedNumberItem);
+          }
+      }
+  }
+
+  return (enrichedFinalNumbers);
+}
+
+function formatDateString(dateString) {
+  // Create a new Date object from the provided date string
+  const dateObj = new Date(dateString);
+
+  // Extract date components (year, month, day, hours, minutes, seconds) from the Date object
+  const year = dateObj.getFullYear();
+  const month = ('0' + (dateObj.getMonth() + 1)).slice(-2); // Months are zero-indexed, so we add 1
+  const day = ('0' + dateObj.getDate()).slice(-2);
+  const hours = ('0' + dateObj.getHours()).slice(-2);
+  const minutes = ('0' + dateObj.getMinutes()).slice(-2);
+  const seconds = ('0' + dateObj.getSeconds()).slice(-2);
+
+  // Construct the formatted date string in the desired format (e.g., 'YYYY-MM-DD HH:MM:SS')
+  const formattedDateString = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+
+  return formattedDateString;
 }
 
 export { generateCSV,generateUserCSV,fetchComplteData };

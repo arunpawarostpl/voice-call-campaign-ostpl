@@ -7,7 +7,8 @@ const transactionHistorySchema = new mongoose.Schema({
   time:{ type: String, required: true, default: () => moment().format('h.mm A') },
   addedBy:{type: String},
   balance:{type:Number},
-  UserId:{type:String}
+  UserId:{type:String},
+  campaign_id:{type:String}
 });
 
 const transactionHistory = mongoose.model('transactionHistory', transactionHistorySchema);
