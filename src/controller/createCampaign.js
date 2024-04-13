@@ -107,31 +107,8 @@ async function createObdCampaigning(req, res) {
 
  validNumbers = (phoneNumbers ?? [])
     .map(cleanAndValidatePhoneNumber)
-    .filter((number) => number !== null);
-
-      // const phoneNumbers = csvString
-      // .split("\n")
-      // .map((row) => row.trim())
-      // .filter((row) => row !== "" && row !== "Numbers");
-      // validNumbers = phoneNumbers
-      // .map(cleanAndValidatePhoneNumber)
-      // .filter((number) => number !== null); 
-    
-    
+    .filter((number) => number !== null); 
     console.log("SendmanualNumbers",validNumbers);
-
-    // if (!orignalName) {
-    //   throw new Error("No number file uploaded");
-    // }
-    // if (!numberFile && manualNumbers) {
-    //   throw new Error("No Manual or number file uploaded");
-    // }
-    
-
-   
-
-      
-       
   const numberList = SendmanualNumbers.split('\n').map(num => num.trim());
   const validSendNumbers = [];
   const invalidNumbers = [];
@@ -148,20 +125,13 @@ async function createObdCampaigning(req, res) {
 
 
    let cleanedPhoneNumber
-  //  if(numberBuffer){
-
-  //    cleanedPhoneNumber = validNumbers
-  //  }
-  // validNumbers=manualNumbers
-  // .map(cleanAndValidatePhoneNumber)
-  // .filter((number) => number !== null);
   const finalNumbersToSend = validNumbers && validNumbers.length > 0 ? validNumbers : validSendNumbers;
 console.log("validSendNumbers",finalNumbersToSend);
   if (finalNumbersToSend === validSendNumbers) {
-    // Format cleanedPhoneNumber as "length [...]"
+  
     cleanedPhoneNumber =validSendNumbers;
   } else {
-    // Assign cleanedPhoneNumber to validNumbers
+
     cleanedPhoneNumber = validNumbers;
   }
 
@@ -190,10 +160,10 @@ console.log("validSendNumbers",finalNumbersToSend);
                const creditsNeeded = calculateCreditsNeeded(calculatedDuration);
                const totalCredit=senderNumber*creditsNeeded
                const userInfo = await user.findOne({ _id:UserId });
-               
+               let campaign_ID
               //  if(!(userInfo.role === "admin")){
                 console.log("credfit",userInfo.credits,creditsNeeded);
-                 if(userInfo.credits > creditsNeeded){
+                 if(userInfo.credits > creditsNeeded){ 
                   console.log("@@@@@");
                    const updatedCredits = userInfo.credits - totalCredit;
                 
@@ -210,24 +180,38 @@ console.log("validSendNumbers",finalNumbersToSend);
                     UserId:UserId
                   })
 
+                  const saveObdCampaign = await obdCampaignModel.create({
+                    obdcampaignname: CampaigName,
+                    description,
+                    createdBy: UserId,
+                    role: UserRole,
+                    audio: {
+          filename: orignalName,
+          data: buffer,
+        },
+        numbers: cleanedPhoneNumber,
+      });
+     campaign_ID = saveObdCampaign._id;
+
+     const transaction_Id= transaction._id
+     const update_id= await transactionHistory.findByIdAndUpdate(
+      transaction_Id,
+      { campaign_id: campaign_ID },
+      { new: true }
+     )
+console.log("updata_id",update_id);
+
                 }else{
                   return  res.status(500).json({ message: 'You need to add more credit for this campaign' });
                 }
                 
                 
-                const saveObdCampaign = await obdCampaignModel.create({
-                  obdcampaignname: CampaigName,
-                  description,
-                  createdBy: UserId,
-                  role: UserRole,
-                  audio: {
-        filename: orignalName,
-        data: buffer,
-      },
-      numbers: cleanedPhoneNumber,
-    });
-    const campaign_ID = saveObdCampaign._id;
-    if (cleanedPhoneNumber.length < 20) {
+             
+
+
+
+
+    if (cleanedPhoneNumber.length < 50) {
       const existingWhitelist = await whiteList.findOne({ createdBy: UserId });
       if (existingWhitelist) {
         const updatedNumbers = [
@@ -352,7 +336,7 @@ if (compose_campaign_baseload.status === 200) {
             [OBD_DNI]: `${dniSendNumber}`,
             [FROM_DATE]: formatedDate, 
             [TO_DATE]: formatedDate,
-            [FROM_TIME]: "09:00:00",
+            [FROM_TIME]: "07:00:00",
             [TO_TIME]: "21:00:00",
             [DIAL_TIMEOUT]: "30",
             [RETRY_INTERVAL_TYPE]: "0",

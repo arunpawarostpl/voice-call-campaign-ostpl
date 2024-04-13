@@ -8,6 +8,8 @@ import axios from "axios";
 import user from "../models/userModel.js";
 import campaignReport from "../models/report.js";
 import { verifyToken } from "../validator/authService.js";
+import { fetchComplteData, generateUserCSV } from "../service/reportService.js";
+import { rePush } from "../service/rePushService.js";
 const upload = multer({ storage: multer.memoryStorage() });
 const cpUpload = upload.fields([
   { name: "audioFile", maxCount: 1 },
@@ -135,7 +137,18 @@ router.post('/getdata', async (req, res) => {
 
 
 
+router.post('/repush_campaign',async(req,res)=>{
+  const {type, campaignRefId,createdById } = req.body;
+ try {
+  console.log("@@@@",createdById);
+ await rePush(req,res)
 
+ } catch (error) {
+   console.error('Error fetching stats:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+ }
+
+})
 
 
 
