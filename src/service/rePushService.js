@@ -4,7 +4,7 @@ import user from "../models/userModel.js";
 import whiteList from "../models/whiteListModel.js";
 import { checkAudioDuration, getDuration } from "./audioConverterService.js";
 import { calculateCreditsNeeded } from "./credit_calculation_service.js";
-import { generateUserCSV } from "./reportService.js"
+import { fetchComplteData, generateUserCSV } from "./reportService.js"
 import fs from "fs";
 import {
     OBD_CAMPAIGN_NAME,
@@ -95,6 +95,20 @@ async function rePush(req,res){
     
     const {campaignRefId,type,createdById } = req.body;
     
+
+    const findLength= await obdCampaignModel.find({campaign_ref_Id:campaignRefId}).select('-audio')
+    const campNumberLength=findLength.map(campaign => campaign.numbers.length);
+    const resultData = await fetchComplteData(campaignRefId);
+    const campNumberLengthValue = Array.isArray(campNumberLength) ? campNumberLength[0] : campNumberLength;
+    console.log("bith",resultData.length,campNumberLength);
+    console.log(resultData);
+    if (campNumberLengthValue !== resultData.length) {
+      return res.status(404).json({ error: 'Campaign is in Pending Status' });
+    } 
+
+
+
+
 
 
 const campaignDetails= await obdCampaignModel.findOne({campaign_ref_Id:campaignRefId})

@@ -387,23 +387,46 @@ router.put('/update-users', async (req, res) => {
 });
 
 
+// router.get('/user-campaigns', async (req, res) => {
+//   try {
+//     const token = req.headers.authorization;
+//     const { UserId } = verifyToken(token)
+//     const getUserList = await obdCampaignModel.find({createdBy:UserId})
+//     const userList = getUserList.map(campaign => ({
+//       ...campaign.toObject()
+//     }))
+//     if (!userList) {
+//       return res.status(404).json({ message: 'User not found' })
+//     }
+//    return res.send(userList)
+//   } catch (error) {
+//     res.status(500).json({ message: error.message })
+//   }
+// })
+
+
 router.get('/user-campaigns', async (req, res) => {
   try {
     const token = req.headers.authorization;
-    const { UserId } = verifyToken(token)
-    const getUserList = await obdCampaignModel.find({createdBy:UserId})
-    const userList = getUserList.map(campaign => ({
-      ...campaign.toObject()
-    }))
-    if (!userList) {
-      return res.status(404).json({ message: 'User not found' })
-    }
-   return res.send(userList)
-  } catch (error) {
-    res.status(500).json({ message: error.message })
-  }
-})
+    const { UserId } = verifyToken(token);
 
+    const { page = 1, limit = 10 } = req.query;
+    const skip = (page - 1) * limit;
+
+    const userCampaigns = await obdCampaignModel
+      .find({ createdBy: UserId })
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    if (!userCampaigns) {
+      return res.status(404).json({ message: 'User campaigns not found' });
+    }
+console.log(userCampaigns);
+    res.json(userCampaigns);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
 
 
 export default router

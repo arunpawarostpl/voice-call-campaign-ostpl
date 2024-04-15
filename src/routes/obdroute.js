@@ -26,22 +26,59 @@ router.post("/create-obd", cpUpload, async (req, res) => {
   }
 });
 
-router.get("/getlist", async (req, res) => {
-  try {
+// router.get("/getlist", async (req, res) => {
+//   try {
     
-    const obdCampaigns = await obdCampaignModel.find({})
-    const createdByUsernames = await user.find({ _id: { $in: obdCampaigns.map(campaign => campaign.createdBy) } }, 'username');
-    const obdCampaignsWithUsernames = obdCampaigns.map(campaign => ({
-      ...campaign.toObject(),
-      createdByUsername: createdByUsernames.find(user => user._id.toString() === campaign.createdBy)?.username,
-    }));
+//       const obdCampaigns = await obdCampaignModel.find({})
+//       const createdByUsernames = await user.find({ _id: { $in: obdCampaigns.map(campaign => campaign.createdBy) } }, 'username');
+//       const obdCampaignsWithUsernames = obdCampaigns.map(campaign => ({
+//         ...campaign.toObject(),
+//         createdByUsername: createdByUsernames.find(user => user._id.toString() === campaign.createdBy)?.username,
+//       }));
 
-//  console.log("list",obdCampaignsWithUsernames);
+//   //  console.log("list",obdCampaignsWithUsernames);
 
-    res.json(obdCampaignsWithUsernames);
+//       res.json(obdCampaignsWithUsernames);
+//   } catch (error) {
+//     console.error("Error fetching data:", error);
+//     res.status(500).json({ error: "Internal Server Error" });
+//   }
+// });
+
+
+router.get('/getlist', async (req, res) => {
+  try {
+      const { page = 1, limit = 10 } = req.query; // Default page: 1, limit: 10 items per page
+      const skip = (page - 1) * limit;
+
+      // Use aggregation to fetch obdCampaigns with createdByUsername populated
+      const obdCampaigns = await obdCampaignModel.aggregate([
+          { $skip: skip }, // Skip documents based on pagination
+          { $limit: parseInt(limit) }, // Limit number of documents per page
+          {
+              $lookup: {
+                  from: 'users', // Assuming the user collection name is 'users'
+                  localField: 'createdBy',
+                  foreignField: '_id',
+                  as: 'createdByUser'
+              }
+          },
+          {
+              $addFields: {
+                  createdByUsername: { $arrayElemAt: ['$createdByUser.username', 0] }
+              }
+          },
+          {
+              $project: {
+                  createdByUser: 0 // Exclude createdByUser field from final output
+              }
+          }
+      ]);
+console.log("obdCampaigns",obdCampaigns);
+      res.json(obdCampaigns);
   } catch (error) {
-    console.error("Error fetching data:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+      console.error('Error fetching data:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 

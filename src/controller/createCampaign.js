@@ -163,13 +163,15 @@ console.log("validSendNumbers",finalNumbersToSend);
                let campaign_ID
               //  if(!(userInfo.role === "admin")){
                 console.log("credfit",userInfo.credits,creditsNeeded);
-                 if(userInfo.credits > creditsNeeded){ 
-                  console.log("@@@@@");
+                if(userInfo.credits <= creditsNeeded){ 
+                  return  res.status(500).json({ message: 'You need to add more credit for this campaign' });
+                } 
                    const updatedCredits = userInfo.credits - totalCredit;
                 
                   await user.updateOne({_id: UserId }, { $set: { credits: updatedCredits } });
                   const deductCredit= `-${totalCredit}`
                   const currentDate = new Date();
+
                   const transaction=  await transactionHistory.create({
                     creditAction:deductCredit,
                     remarks:"Campaign",
@@ -179,6 +181,7 @@ console.log("validSendNumbers",finalNumbersToSend);
                     balance:updatedCredits,
                     UserId:UserId
                   })
+                    
 
                   const saveObdCampaign = await obdCampaignModel.create({
                     obdcampaignname: CampaigName,
@@ -201,10 +204,7 @@ console.log("validSendNumbers",finalNumbersToSend);
      )
 console.log("updata_id",update_id);
 
-                }else{
-                  return  res.status(500).json({ message: 'You need to add more credit for this campaign' });
-                }
-                
+              
                 
              
 
