@@ -81,8 +81,10 @@ return latestResponses
         const transactionCampaignId=camapaignNumber._id
         // console.log("camapaignNumber",camapaignNumber);
         const transaction= await transactionHistory.findOne({campaign_id:camapaignNumber._id})
+        const creditAction=transaction.creditAction
+        const { obdcampaignname, createdAt } = camapaignNumber;
         const campaign_Name=camapaignNumber.obdcampaignname
-        // console.log("transaction",transaction)
+        console.log("data",obdcampaignname,createdAt,creditAction)
         
         
         const missingNumbers = UserNumbers.filter(UserNumbers => !dataFromDB.some(record => record.A_PARTY_NO === UserNumbers));
@@ -104,7 +106,9 @@ return latestResponses
           shuffleArray(finalNumbers);
           console.log("finalNumbers",finalNumbers);
 // console.log("final Number",finalNumbers);
-const sendingData = await enrichFinalNumbersWithTransactionDetails(campaignRefId,transactionCampaignId, finalNumbers)
+
+
+// const sendingData = await enrichFinalNumbersWithTransactionDetails(obdcampaignname,createdAt, creditAction,finalNumbers)
 
 console.log("sendingData",sendingData);
         return (sendingData);
@@ -119,44 +123,94 @@ console.log("sendingData",sendingData);
 
 
 
-async function enrichFinalNumbersWithTransactionDetails(campaignRefId,transactionCampaignId, finalNumbers) {
-  const enrichedFinalNumbers = [];
+// async function enrichFinalNumbersWithTransactionDetails(campaignRefId,transactionCampaignId, finalNumbers) {
+//   console.log("@@@@" );
+//   const enrichedFinalNumbers = [];
 
-  for (const numberItem of finalNumbers) {
-      // Use the provided CAMPAIGN_REF_ID to retrieve related transaction and campaign details
-      const campaignId = campaignRefId; // Assuming CAMPAIGN_REF_ID is used to identify the campaign
+//   for (const numberItem of finalNumbers) {
+//       // Use the provided CAMPAIGN_REF_ID to retrieve related transaction and campaign details
+//       const campaignId = campaignRefId; // Assuming CAMPAIGN_REF_ID is used to identify the campaign
 
-      // Retrieve the transaction based on campaignId
-      const transaction = await transactionHistory.findOne({ campaign_id: transactionCampaignId });
+//       // Retrieve the transaction based on campaignId
+//       const transaction = await transactionHistory.findOne({ campaign_id: transactionCampaignId });
 
-      console.log("transaction",transaction);
-      if (transaction) {
-          // Extract additional details from the transaction
-          const { creditAction, campaign_id } = transaction;
+//       // console.log("transaction",transaction);
+//       if (transaction) {
+//           // Extract additional details from the transaction
+//           const { creditAction } = transaction;
 
-          // Retrieve campaign details based on campaign_id from transaction
-          const campaign = await obdCampaignModel.findOne({ campaign_ref_Id: campaignId });
-      console.log("campaign",campaign);
+//           // Retrieve campaign details based on campaign_id from transaction
+//           const campaign = await obdCampaignModel.findOne({ campaign_ref_Id: campaignId });
+//       // console.log("campaign",campaign);
 
-          if (campaign) {
-              const { obdcampaignname, createdAt } = campaign;
+//           if (campaign) {
+//               const { obdcampaignname, createdAt } = campaign;
 
-              // Create an enriched number item with additional details
-              const enrichedNumberItem = {
-                  ...numberItem,
-                  creditAction: creditAction,
-                  obdcampaignname: obdcampaignname,
-                  createdAt:    formatDateString(createdAt)
+//               // Create an enriched number item with additional details
+//               const enrichedNumberItem = {
+//                   ...numberItem,
+//                   creditAction: creditAction,
+//                   obdcampaignname: obdcampaignname,
+//                   createdAt:    formatDateString(createdAt)
                   
-              };
+//               };
 
-              // Push the enriched number item to the result array
-              enrichedFinalNumbers.push(enrichedNumberItem);
-          }
-      }
+//               // Push the enriched number item to the result array
+//               enrichedFinalNumbers.push(enrichedNumberItem);
+//           }
+//       }
+//   }
+// console.log("enrichedFinalNumbers",enrichedFinalNumbers);
+//   return (enrichedFinalNumbers);
+// }
+
+
+
+async function enrichFinalNumbersWithTransactionDetails(campaignRefId, transactionCampaignId, finalNumbers) {
+  const batchSize = 1000; // Define the batch size for processing
+  console.log("campaignRefId",campaignRefId,"transactionCampaignId",transactionCampaignId);
+  const enrichedFinalNumbers = [];
+  
+  // Process the numbers in batches
+  for (let i = 0; i < finalNumbers.length; i += batchSize) {
+      const batchNumbers = finalNumbers.slice(i, i + batchSize);
+
+      // Use Promise.all to await all asynchronous operations in parallel for the current batch
+      await Promise.all(
+          batchNumbers.map(async (numberItem) => {
+              const campaignId = campaignRefId;
+
+              // Retrieve the transaction based on transactionCampaignId
+              const transaction = await transactionHistory.findOne({ campaign_id: transactionCampaignId });
+
+              if (transaction) {
+                  const { creditAction } = transaction;
+
+                  
+                  // Retrieve campaign details based on campaignId
+                  const campaign = await obdCampaignModel.findOne({ campaign_ref_Id: '15341'}).select('-audio');
+console.log("campaign",campaign);
+                  if (campaign) {
+                      const { obdcampaignname, createdAt } = campaign;
+
+                      // Create an enriched number item with additional details
+                      const enrichedNumberItem = {
+                          ...numberItem,
+                          creditAction,
+                          obdcampaignname,
+                          createdAt: formatDateString(createdAt)
+                      };
+
+                      // Push the enriched number item to the result array
+                      enrichedFinalNumbers.push(enrichedNumberItem);
+                  }
+              }
+          })
+      );
   }
 
-  return (enrichedFinalNumbers);
+  console.log("enrichedFinalNumbers", enrichedFinalNumbers.length);
+  return enrichedFinalNumbers;
 }
 
 function formatDateString(dateString) {
