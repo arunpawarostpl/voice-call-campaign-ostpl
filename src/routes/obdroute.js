@@ -74,7 +74,7 @@ router.get('/getlist', async (req, res) => {
               }
           }
       ]);
-console.log("obdCampaigns",obdCampaigns);
+// console.log("obdCampaigns",obdCampaigns);
       res.json(obdCampaigns);
   } catch (error) {
       console.error('Error fetching data:', error);
