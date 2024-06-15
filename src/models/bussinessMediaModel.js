@@ -6,6 +6,9 @@ const mediaSchema = new mongoose.Schema({
         type: String,
         enum: ['video', 'document', 'image'] // Define allowed media types
     },
+    name: {
+        type: String,
+    },
     mediaId: {
         type: String
     },
