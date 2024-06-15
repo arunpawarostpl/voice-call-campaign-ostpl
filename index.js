@@ -12,6 +12,7 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import dniRoute from "./src/routes/dniRoute.js"
 import mediaRoute from "./src/routes/mediaRoute.js"
+import whatsAppBusinessDataRoute from "./src/routes/whatsAppBusinessDataRoute.js"
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 dotenv.config();
@@ -36,6 +37,9 @@ app.use('/obd', obdroute)
 app.use('/report',reportRoute)
 app.use('/dni',dniRoute)
 app.use('/upload', mediaRoute);
+app.use('/wa-business-data', whatsAppBusinessDataRoute);
+
+
 
 
 const PORT = process.env.PORT || 3000
