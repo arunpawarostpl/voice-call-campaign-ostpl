@@ -63,7 +63,6 @@ async function uploadMedia(req, res, wh_business_data) {
 
     // Upload the WhatsApp media using the provided token and media data
     const medaiSenderId = await uploadWhatsappMedia(token, media, buffer, wa_phone_id);
-
     const mediaId = media._id
     await WatsappMedia.findByIdAndUpdate(
       { _id: mediaId },
@@ -174,10 +173,10 @@ async function sendTemplateMessages(req, res, token, media, senderNumber) {
       }
 
       console.log('All messages sent successfully.');
-      res.status(200).json({ message: 'Messages sent successfully.' })
+      
   } catch (error) {
       console.error('Failed to send messages:', error.message);
-      res.status(500).json({ message: `Failed to send messages : ${error.message}` })
+    
       throw error;
   }
 }
