@@ -69,7 +69,6 @@ const sendMessage = async (media, token, wa_phone_id, batchSize = 50) => {
 
     for (const batch of numberBatches) {
       if (!Array.isArray(batch)) {
-        console.error('Invalid batch:', batch);
         continue; // Skip this batch and proceed to the next one
       }
       const payloadPromises = batch.map(async (recipientNumber) => {
@@ -92,7 +91,6 @@ const sendMessage = async (media, token, wa_phone_id, batchSize = 50) => {
                       type: mediaType,
                       [mediaType]: {
                         id: sendingMediaId,
-                        filename: fileName
                       }
                     }
                   ]
@@ -101,12 +99,14 @@ const sendMessage = async (media, token, wa_phone_id, batchSize = 50) => {
             }
           };
 
+          if (mediaType === "document") {
+            payload.template.components[0].parameters[0][mediaType].filename = fileName;
+          }
+
           const headers = {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`
           };
-
-          console.log("payload", JSON.stringify(payload));
           const url = `https://graph.facebook.com/v19.0/${wa_phone_id}/messages`;
           const response = await axios.post(url, payload, { headers });
 
@@ -126,10 +126,10 @@ const sendMessage = async (media, token, wa_phone_id, batchSize = 50) => {
       const results = await Promise.all(payloadPromises);
 
       // Log results for each message sent in the current batch
-      results.forEach((result) => console.log(result));
+     // results.forEach((result) => console.log(result));
     }
 
-    console.log('All messages sent successfully.');
+  //  console.log('All messages sent successfully.');
 
   } catch (error) {
     // Handle any general errors during message sending
